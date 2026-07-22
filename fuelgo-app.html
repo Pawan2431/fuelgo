@@ -178,7 +178,7 @@ html, body {
 
 .btn-login {
   width: 100%;
-  padding: 15px;
+  padding: 14px;
   border-radius: 12px;
   border: none;
   background: var(--orange);
@@ -251,7 +251,7 @@ html, body {
 /* ── LEAFLET MAP CONTAINERS ── */
 #app-map, #track-map {
   width: 100%;
-  height: 240px;
+  height: 250px;
   border-radius: 18px;
   border: 1px solid var(--border);
   margin-bottom: 16px;
@@ -353,19 +353,81 @@ html, body {
 .summary-price { font-family: var(--font-head); font-weight: 800; font-size: 20px; color: white; }
 
 /* ── TRACKING COMPONENTS ── */
+.eta-card {
+  background: var(--deep);
+  color: white;
+  border-radius: 18px;
+  padding: 18px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.eta-title { font-size: 12px; color: rgba(255,255,255,0.6); }
+.eta-time { font-family: var(--font-head); font-weight: 800; font-size: 24px; color: var(--orange); }
+
+.driver-card {
+  background: white;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.driver-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.driver-avatar {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: var(--orange);
+  color: white;
+  font-family: var(--font-head);
+  font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+
+.driver-name { font-family: var(--font-head); font-weight: 700; font-size: 15px; }
+.driver-sub { font-size: 11px; color: var(--muted); }
+
+.driver-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.btn-driver-action {
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  color: var(--deep);
+}
+
 .timeline-card {
   background: white;
   border-radius: 18px;
   border: 1px solid var(--border);
   padding: 18px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .timeline-step {
   display: flex;
   gap: 14px;
   position: relative;
-  padding-bottom: 16px;
+  padding-bottom: 18px;
 }
 .timeline-step:last-child { padding-bottom: 0; }
 
@@ -396,56 +458,71 @@ html, body {
 .step-title { font-family: var(--font-head); font-weight: 700; font-size: 13px; color: var(--deep); }
 .step-desc { font-size: 11px; color: var(--muted); }
 
-.driver-card {
+/* ── HISTORY COMPONENTS ── */
+.history-stats-banner {
+  background: var(--deep);
+  color: white;
+  border-radius: 18px;
+  padding: 16px;
+  margin-bottom: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  text-align: center;
+}
+
+.hist-stat-val { font-family: var(--font-head); font-weight: 800; font-size: 18px; color: white; }
+.hist-stat-lbl { font-size: 10px; color: rgba(255,255,255,0.5); }
+
+.history-card {
   background: white;
   border-radius: 18px;
   border: 1px solid var(--border);
   padding: 16px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
-.driver-avatar {
-  width: 48px; height: 48px;
-  border-radius: 50%;
-  background: var(--orange);
-  color: white;
-  font-family: var(--font-head);
-  font-weight: 800;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px;
-}
-
-.driver-name { font-family: var(--font-head); font-weight: 700; font-size: 15px; }
-.driver-sub { font-size: 11px; color: var(--muted); }
-
-/* ── HISTORY COMPONENTS ── */
-.history-card {
-  background: white;
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  padding: 16px;
-  margin-bottom: 12px;
+.history-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
 }
 
-.hist-left { display: flex; align-items: center; gap: 12px; }
-.hist-icon-box {
-  width: 40px; height: 40px;
-  border-radius: 12px;
-  background: #FFF6F0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px;
+.order-id { font-family: var(--font-head); font-weight: 700; font-size: 12px; color: var(--orange); }
+.order-date { font-size: 11px; color: var(--muted); }
+
+.history-card-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
 }
 
-.hist-fuel { font-family: var(--font-head); font-weight: 700; font-size: 14px; }
-.hist-meta { font-size: 11px; color: var(--muted); }
-.hist-price { font-family: var(--font-head); font-weight: 800; font-size: 15px; color: var(--deep); text-align: right; }
-.hist-status { font-size: 10px; color: var(--green); font-weight: 700; }
+.hist-fuel-name { font-family: var(--font-head); font-weight: 800; font-size: 16px; color: var(--deep); }
+.hist-station-name { font-size: 11px; color: var(--muted); }
+.hist-price-val { font-family: var(--font-head); font-weight: 800; font-size: 17px; color: var(--green); text-align: right; }
+
+.history-card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-hist-action {
+  flex: 1;
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 11px;
+  cursor: pointer;
+  text-align: center;
+  color: var(--deep);
+}
 
 /* ── CONFIRMATION MODAL ── */
 .confirm-modal-overlay {
@@ -684,24 +761,40 @@ html, body {
     <!-- ── TAB 2: LIVE GPS TRACKING SUB-SCREEN ── -->
     <div id="cust-sub-track" class="cust-sub-screen">
       <div class="section-padding">
-        <div class="sec-title">Live GPS Delivery Tracking</div>
-        <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">📍 Chetipedu, Tamil Nadu — 602105</div>
+        <div class="eta-card">
+          <div>
+            <div class="eta-title">Guaranteed Arrival Time</div>
+            <div style="font-family:var(--font-head);font-weight:700;font-size:14px;color:white;margin-top:2px;">Order #FG-8821</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="eta-time">⚡ 12 Mins</div>
+            <div style="font-size:10px;color:#4AE88A;font-weight:600;">● Agent Moving</div>
+          </div>
+        </div>
 
+        <div class="sec-title">Live Dispatch Map</div>
         <div id="track-map"></div>
 
         <div class="driver-card">
-          <div class="driver-avatar">RK</div>
-          <div style="flex:1;">
-            <div class="driver-name">Ravi Kumar (Agent #402)</div>
-            <div class="driver-sub">Vehicle: TN-01-FG-8821 · BIS Certified Agent</div>
+          <div class="driver-top">
+            <div class="driver-avatar">RK</div>
+            <div style="flex:1;">
+              <div class="driver-name">Ravi Kumar (Agent #402) ★ 4.9</div>
+              <div class="driver-sub">Vehicle: TN-01-FG-8821 · Fuel Dispenser Tanker</div>
+            </div>
           </div>
-          <button class="btn-login" style="width:auto;padding:8px 14px;background:var(--green);font-size:12px;" onclick="alert('Calling Agent Ravi Kumar...')">
-            <i class="fas fa-phone-alt"></i> Call
-          </button>
+          <div class="driver-actions">
+            <button class="btn-driver-action" onclick="alert('Calling Agent Ravi Kumar (+91 98765 12345)...')">
+              <i class="fas fa-phone-alt" style="color:var(--green);"></i> Call Agent
+            </button>
+            <button class="btn-driver-action" onclick="alert('Opening chat with Agent Ravi Kumar...')">
+              <i class="fas fa-comment-alt" style="color:var(--orange);"></i> Message
+            </button>
+          </div>
         </div>
 
         <div class="timeline-card">
-          <div style="font-family:var(--font-head);font-weight:700;font-size:14px;margin-bottom:14px;">Delivery Progress:</div>
+          <div style="font-family:var(--font-head);font-weight:700;font-size:14px;margin-bottom:14px;">Delivery Status Timeline:</div>
           
           <div class="timeline-step done">
             <div class="step-icon">✓</div>
@@ -714,8 +807,8 @@ html, body {
           <div class="timeline-step active">
             <div class="step-icon">🚚</div>
             <div>
-              <div class="step-title">Delivery Agent En Route</div>
-              <div class="step-desc">10:18 AM · 0.8 km away from Chetipedu</div>
+              <div class="step-title">Agent En Route to Destination</div>
+              <div class="step-desc">10:18 AM · 0.8 km away from Chetipedu location</div>
             </div>
           </div>
 
@@ -723,15 +816,15 @@ html, body {
             <div class="step-icon">⛽</div>
             <div>
               <div class="step-title">Arriving & Fuel Dispensing</div>
-              <div class="step-desc">Estimated: 10:27 AM</div>
+              <div class="step-desc">Estimated Arrival: 10:27 AM</div>
             </div>
           </div>
 
           <div class="timeline-step">
             <div class="step-icon">🏁</div>
             <div>
-              <div class="step-title">Order Complete & Receipt</div>
-              <div class="step-desc">Pending completion</div>
+              <div class="step-title">Order Complete & E-Receipt</div>
+              <div class="step-desc">Pending delivery verification</div>
             </div>
           </div>
         </div>
@@ -741,61 +834,96 @@ html, body {
     <!-- ── TAB 3: PAST ORDERS HISTORY SUB-SCREEN ── -->
     <div id="cust-sub-history" class="cust-sub-screen">
       <div class="section-padding">
-        <div class="sec-title">Past Chetipedu Fuel Orders</div>
-
-        <div class="history-card">
-          <div class="hist-left">
-            <div class="hist-icon-box">⛽</div>
-            <div>
-              <div class="hist-fuel">Petrol · 20 Litres</div>
-              <div class="hist-meta">Today, 10:15 AM · Chetipedu Main Rd</div>
-            </div>
+        <div class="history-stats-banner">
+          <div>
+            <div class="hist-stat-val">₹7,862</div>
+            <div class="hist-stat-lbl">Total Spend</div>
           </div>
           <div>
-            <div class="hist-price">₹2,059</div>
-            <div class="hist-status">✓ Delivered</div>
+            <div class="hist-stat-val">65L</div>
+            <div class="hist-stat-lbl">Delivered</div>
+          </div>
+          <div>
+            <div class="hist-stat-val">4</div>
+            <div class="hist-stat-lbl">Total Orders</div>
           </div>
         </div>
 
+        <div class="sec-title">Past Fuel Deliveries</div>
+
+        <!-- ORDER CARD 1 -->
         <div class="history-card">
-          <div class="hist-left">
-            <div class="hist-icon-box">🛢️</div>
-            <div>
-              <div class="hist-fuel">Diesel · 30 Litres</div>
-              <div class="hist-meta">Yesterday, 4:20 PM · BPCL Sriperumbudur</div>
-            </div>
+          <div class="history-card-header">
+            <span class="order-id">#FG-8821</span>
+            <span class="order-date">Today, 10:15 AM</span>
           </div>
-          <div>
-            <div class="hist-price">₹2,705</div>
-            <div class="hist-status">✓ Delivered</div>
+          <div class="history-card-body">
+            <div>
+              <div class="hist-fuel-name">⛽ Petrol · 20 Litres</div>
+              <div class="hist-station-name">Indian Oil Station Chetipedu</div>
+            </div>
+            <div class="hist-price-val">₹2,059</div>
+          </div>
+          <div class="history-card-actions">
+            <button class="btn-hist-action" onclick="alert('Receipt #FG-8821 Downloaded PDF')">📄 Invoice</button>
+            <button class="btn-hist-action" style="background:var(--orange);color:white;border:none;" onclick="reorderFuel('Petrol', 20)">🔄 Reorder</button>
           </div>
         </div>
 
+        <!-- ORDER CARD 2 -->
         <div class="history-card">
-          <div class="hist-left">
-            <div class="hist-icon-box">✨</div>
-            <div>
-              <div class="hist-fuel">Premium Petrol · 15 Litres</div>
-              <div class="hist-meta">20 Jul 2026 · HP Station Chetipedu</div>
-            </div>
+          <div class="history-card-header">
+            <span class="order-id">#FG-8402</span>
+            <span class="order-date">Yesterday, 4:20 PM</span>
           </div>
-          <div>
-            <div class="hist-price">₹1,709</div>
-            <div class="hist-status">✓ Delivered</div>
+          <div class="history-card-body">
+            <div>
+              <div class="hist-fuel-name">🛢️ Diesel · 30 Litres</div>
+              <div class="hist-station-name">Bharat Petroleum Sriperumbudur</div>
+            </div>
+            <div class="hist-price-val">₹2,705</div>
+          </div>
+          <div class="history-card-actions">
+            <button class="btn-hist-action" onclick="alert('Receipt #FG-8402 Downloaded PDF')">📄 Invoice</button>
+            <button class="btn-hist-action" style="background:var(--orange);color:white;border:none;" onclick="reorderFuel('Diesel', 30)">🔄 Reorder</button>
           </div>
         </div>
 
+        <!-- ORDER CARD 3 -->
         <div class="history-card">
-          <div class="hist-left">
-            <div class="hist-icon-box">💨</div>
-            <div>
-              <div class="hist-fuel">LPG · 2 Cylinders</div>
-              <div class="hist-meta">15 Jul 2026 · Chetipedu Residence</div>
-            </div>
+          <div class="history-card-header">
+            <span class="order-id">#FG-7910</span>
+            <span class="order-date">20 Jul 2026, 11:30 AM</span>
           </div>
-          <div>
-            <div class="hist-price">₹1,389</div>
-            <div class="hist-status">✓ Delivered</div>
+          <div class="history-card-body">
+            <div>
+              <div class="hist-fuel-name">✨ Premium Petrol · 15 Litres</div>
+              <div class="hist-station-name">HP Petrol Pump Chetipedu</div>
+            </div>
+            <div class="hist-price-val">₹1,709</div>
+          </div>
+          <div class="history-card-actions">
+            <button class="btn-hist-action" onclick="alert('Receipt #FG-7910 Downloaded PDF')">📄 Invoice</button>
+            <button class="btn-hist-action" style="background:var(--orange);color:white;border:none;" onclick="reorderFuel('Premium', 15)">🔄 Reorder</button>
+          </div>
+        </div>
+
+        <!-- ORDER CARD 4 -->
+        <div class="history-card">
+          <div class="history-card-header">
+            <span class="order-id">#FG-7104</span>
+            <span class="order-date">15 Jul 2026, 2:45 PM</span>
+          </div>
+          <div class="history-card-body">
+            <div>
+              <div class="hist-fuel-name">💨 LPG · 2 Cylinders</div>
+              <div class="hist-station-name">Indian Oil Station Chetipedu</div>
+            </div>
+            <div class="hist-price-val">₹1,389</div>
+          </div>
+          <div class="history-card-actions">
+            <button class="btn-hist-action" onclick="alert('Receipt #FG-7104 Downloaded PDF')">📄 Invoice</button>
+            <button class="btn-hist-action" style="background:var(--orange);color:white;border:none;" onclick="reorderFuel('LPG', 2)">🔄 Reorder</button>
           </div>
         </div>
       </div>
@@ -904,15 +1032,19 @@ function switchCustTab(tabName) {
     document.getElementById('cust-sub-home').classList.add('active');
     tabs[0].classList.add('active');
     if (!homeMapInit) {
-      setTimeout(initHomeMap, 300);
+      setTimeout(initHomeMap, 150);
       homeMapInit = true;
+    } else if (homeMapObj) {
+      setTimeout(() => homeMapObj.invalidateSize(), 150);
     }
   } else if (tabName === 'track') {
     document.getElementById('cust-sub-track').classList.add('active');
     tabs[1].classList.add('active');
     if (!trackMapInit) {
-      setTimeout(initTrackMap, 300);
+      setTimeout(initTrackMap, 150);
       trackMapInit = true;
+    } else if (trackMapObj) {
+      setTimeout(() => trackMapObj.invalidateSize(), 150);
     }
   } else if (tabName === 'history') {
     document.getElementById('cust-sub-history').classList.add('active');
@@ -968,6 +1100,11 @@ function confirmAndTrackOrder() {
   switchCustTab('track');
 }
 
+function reorderFuel(fuel, qty) {
+  switchCustTab('home');
+  alert('Reordering ' + fuel + ' (' + qty + 'L)...');
+}
+
 /* ── LEAFLET CHETIPEDU MAPS INIT ── */
 function initHomeMap() {
   const lat = 12.9734;
@@ -995,6 +1132,7 @@ function initTrackMap() {
     attribution: '© OpenStreetMap'
   }).addTo(trackMapObj);
 
+  // Delivery destination marker
   L.marker([lat, lng]).addTo(trackMapObj).bindPopup('<b>Delivery Address</b><br>Chetipedu, TN 602105').openPopup();
 
   // Agent Icon
@@ -1003,6 +1141,9 @@ function initTrackMap() {
     html: '<div style="background:#E8520A;color:white;padding:5px 10px;border-radius:16px;font-family:Syne,sans-serif;font-weight:700;font-size:11px;box-shadow:0 4px 10px rgba(0,0,0,0.3);">🛵 Agent Ravi (12 min)</div>'
   });
   L.marker([12.9760, 79.9360], {icon: agentIcon}).addTo(trackMapObj).bindPopup('<b>Ravi Kumar (Agent #402)</b><br>En route to Chetipedu');
+
+  // Draw connecting route polyline
+  L.polyline([[12.9780, 79.9380], [12.9760, 79.9360], [lat, lng]], {color: '#E8520A', weight: 4, dashArray: '8, 8'}).addTo(trackMapObj);
 }
 </script>
 </body>
