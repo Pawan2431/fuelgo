@@ -143,6 +143,7 @@
         h1, h2, h3, h4, h5, h6 {
             font-family: var(--font-heading);
             color: var(--text-main);
+            letter-spacing: -0.5px;
         }
 
         .btn {
@@ -153,11 +154,11 @@
             padding: 16px;
             border-radius: var(--radius-btn);
             border: none;
-            font-family: var(--font-body);
+            font-family: var(--font-heading);
             font-weight: 700;
             font-size: 16px;
             cursor: pointer;
-            transition: transform 0.1s, opacity 0.2s;
+            transition: transform 0.15s, background 0.2s;
             gap: 8px;
         }
 
@@ -166,9 +167,12 @@
         }
 
         .btn-orange {
-            background: linear-gradient(135deg, var(--orange), #FF8C00);
+            background: var(--orange);
             color: white;
-            box-shadow: 0 4px 15px rgba(255, 107, 0, 0.3);
+            box-shadow: 0 4px 15px rgba(232, 82, 10, 0.3);
+        }
+        .btn-orange:hover {
+            background: var(--orange2);
         }
 
         .btn-red {
