@@ -1,3147 +1,635 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FuelGo Mobile App</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
-    <!-- Font Awesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Leaflet JS for Maps -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    
-    <style>
-        :root {
-            /* Brand Colors */
-            --navy: #1A1208;
-            --blue: #E8520A;
-            --orange: #E8520A;
-            --orange2: #FF6820;
-            --green: #2D8A5A;
-            --red: #FF3D3D;
-            --yellow: #F7A32B;
-            
-            /* Surface Colors (Light Mode by default) */
-            --bg-color: #FDF8F2;
-            --surface-color: #FFFFFF;
-            --text-main: #1A1208;
-            --text-muted: #8A7B68;
-            --border-color: rgba(0,0,0,0.08);
-            --nav-bg: #FFFFFF;
-            --input-bg: #F3F4F6;
-            
-            /* Typography */
-            --font-body: 'DM Sans', sans-serif;
-            --font-heading: 'Syne', sans-serif;
-            
-            /* Radii & Shadows */
-            --radius-card: 16px;
-            --radius-chip: 20px;
-            --radius-btn: 14px;
-            --shadow-subtle: 0 2px 12px rgba(26,18,8,0.10);
-        }
-
-        /* Dark Mode Variables */
-        [data-theme="dark"] {
-            --bg-color: #111827;
-            --surface-color: #1F2937;
-            --text-main: #F9FAFB;
-            --text-muted: #9CA3AF;
-            --border-color: #374151;
-            --nav-bg: #1F2937;
-            --input-bg: #374151;
-            --shadow-subtle: 0 2px 12px rgba(0,0,0,0.30);
-        }
-
-        /* Google Maps Styles */
-        .map-home { width: 100%; height: 35vh; }
-        .map-order { width: 100%; height: 50vh; position: relative; }
-        .map-track { width: 100%; height: 70vh; position: absolute; top: 0; left: 0; z-index: 0; }
-        .map-emergency { width: 100%; height: 160px; border-radius: var(--radius-card); margin-bottom: 20px; }
-        .map-station { width: 100%; height: 160px; }
-        
-        .pac-container { z-index: 10000 !important; font-family: var(--font-body); border-radius: var(--radius-card); box-shadow: var(--shadow-subtle); margin-top: 5px; border: none; }
-        .map-center-pin { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -100%); font-size: 40px; pointer-events: none; z-index: 2; text-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .current-location-btn { position: absolute; bottom: 20px; right: 20px; width: 44px; height: 44px; border-radius: 50%; background: white; color: var(--blue); border: none; box-shadow: var(--shadow-subtle); display: flex; justify-content: center; align-items: center; z-index: 2; cursor: pointer; font-size: 18px; }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            font-family: var(--font-body);
-            background-color: #000; /* Outer background */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            color: var(--text-main);
-        }
-
-        /* App Container mimicking mobile device */
-        #app-container {
-            width: 100%;
-            max-width: 414px; /* iPhone Max width */
-            height: 100vh;
-            max-height: 896px;
-            background-color: var(--bg-color);
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 0 40px rgba(0,0,0,0.5);
-            transition: background-color 0.3s ease;
-        }
-
-        /* Screens Wrapper */
-        #screens-wrapper {
-            width: 100%;
-            height: 100%;
-            position: relative;
-        }
-
-        .screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--bg-color);
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding-bottom: 80px; /* Space for bottom nav */
-            transform: translateX(100%);
-            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            z-index: 10;
-        }
-
-        .screen.active {
-            transform: translateX(0);
-            z-index: 20;
-        }
-
-        .screen.prev {
-            transform: translateX(-30%);
-            z-index: 10;
-        }
-
-        /* Hide scrollbar for clean look */
-        .screen::-webkit-scrollbar {
-            display: none;
-        }
-        .screen {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-
-        /* Common Elements */
-        h1, h2, h3, h4, h5, h6 {
-            font-family: var(--font-heading);
-            color: var(--text-main);
-            letter-spacing: -0.5px;
-        }
-
-        .btn {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            padding: 16px;
-            border-radius: var(--radius-btn);
-            border: none;
-            font-family: var(--font-heading);
-            font-weight: 700;
-            font-size: 16px;
-            cursor: pointer;
-            transition: transform 0.15s, background 0.2s;
-            gap: 8px;
-        }
-
-        .btn:active {
-            transform: scale(0.98);
-        }
-
-        .btn-orange {
-            background: var(--orange);
-            color: white;
-            box-shadow: 0 4px 15px rgba(232, 82, 10, 0.3);
-        }
-        .btn-orange:hover {
-            background: var(--orange2);
-        }
-
-        .btn-red {
-            background: linear-gradient(135deg, var(--red), #FF5252);
-            color: white;
-            box-shadow: 0 4px 15px rgba(255, 61, 61, 0.3);
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 2px solid var(--red);
-            color: var(--red);
-        }
-
-        .card {
-            background-color: var(--surface-color);
-            border-radius: var(--radius-card);
-            padding: 16px;
-            box-shadow: var(--shadow-subtle);
-            margin-bottom: 16px;
-            transition: background-color 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .header-bar {
-            position: sticky;
-            top: 0;
-            background-color: rgba(var(--bg-color), 0.9);
-            backdrop-filter: blur(10px);
-            z-index: 30;
-            padding: 16px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .back-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-main);
-            font-size: 20px;
-            cursor: pointer;
-            padding: 8px;
-        }
-
-        /* ------------------ SCREENS ------------------ */
-
-        /* 1. Splash Screen */
-        #splash {
-            background-color: var(--navy);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding-bottom: 0;
-        }
-
-        .splash-logo-img {
-            width: 250px;
-            margin-bottom: 20px;
-            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .splash-welcome {
-            color: white;
-            font-size: 24px;
-            font-weight: 700;
-            margin-top: 40px;
-            opacity: 0;
-            animation: fadeIn 0.5s ease 0.5s forwards;
-        }
-
-        .progress-bar-container {
-            width: 200px;
-            height: 4px;
-            background-color: rgba(255,255,255,0.2);
-            border-radius: 4px;
-            margin-top: 20px;
-            overflow: hidden;
-            opacity: 0;
-            animation: fadeIn 0.5s ease 0.8s forwards;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            background-color: var(--orange);
-            width: 0%;
-            animation: progress 2s ease-in-out forwards;
-        }
-
-        @keyframes popIn {
-            0% { transform: scale(0.8); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        @keyframes fadeIn {
-            to { opacity: 1; }
-        }
-
-        @keyframes progress {
-            to { width: 100%; }
-        }
-
-        /* ------------------ HOME SCREEN ------------------ */
-        .home-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 20px 10px;
-            background-color: var(--bg-color);
-            position: sticky;
-            top: 0;
-            z-index: 30;
-        }
-
-        .location-pill {
-            display: inline-flex;
-            align-items: center;
-            background-color: var(--surface-color);
-            padding: 8px 12px;
-            border-radius: var(--radius-chip);
-            font-size: 14px;
-            font-weight: 600;
-            box-shadow: var(--shadow-subtle);
-            gap: 6px;
-        }
-
-        .location-pill i {
-            color: var(--red);
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-
-        .icon-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--surface-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: var(--shadow-subtle);
-            position: relative;
-            cursor: pointer;
-            border: none;
-            color: var(--text-main);
-        }
-
-        .badge-dot {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 8px;
-            height: 8px;
-            background-color: var(--orange);
-            border-radius: 50%;
-            border: 2px solid var(--surface-color);
-        }
-
-        .profile-pic {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--blue), var(--navy));
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-size: 20px;
-            font-weight: bold;
-        }
-
-        .greeting {
-            padding: 0 20px 10px;
-            font-size: 24px;
-            font-weight: 800;
-            color: var(--text-main);
-        }
-        
-        .greeting span {
-            color: var(--orange);
-        }
-
-        .search-bar {
-            margin: 0 20px 20px;
-            background-color: var(--input-bg);
-            border-radius: var(--radius-card);
-            padding: 14px 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: var(--text-muted);
-            cursor: pointer;
-        }
-
-        .search-bar i {
-            color: var(--text-muted);
-        }
-
-        .filter-scroll {
-            display: flex;
-            overflow-x: auto;
-            gap: 10px;
-            padding: 0 20px 20px;
-            scrollbar-width: none; /* Firefox */
-        }
-        .filter-scroll::-webkit-scrollbar {
-            display: none; /* Safari and Chrome */
-        }
-
-        .filter-chip {
-            padding: 8px 16px;
-            background-color: var(--surface-color);
-            border-radius: var(--radius-chip);
-            font-size: 14px;
-            font-weight: 700;
-            white-space: nowrap;
-            box-shadow: var(--shadow-subtle);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            color: var(--text-muted);
-            border: 1px solid var(--border-color);
-        }
-
-        .filter-chip.active {
-            background-color: var(--navy);
-            color: white;
-            border-color: var(--navy);
-        }
-
-        .promo-banner {
-            margin: 0 20px 20px;
-            background: linear-gradient(135deg, var(--orange), #FF8C00);
-            border-radius: var(--radius-card);
-            padding: 20px;
-            color: white;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(255, 107, 0, 0.3);
-        }
-
-        .promo-badge {
-            background-color: white;
-            color: var(--orange);
-            padding: 4px 8px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 800;
-            display: inline-block;
-            margin-bottom: 8px;
-        }
-
-        .promo-title {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 4px;
-            font-family: var(--font-heading);
-        }
-        
-        .promo-desc {
-            font-size: 12px;
-            opacity: 0.9;
-        }
-
-        .promo-icon {
-            position: absolute;
-            right: -10px;
-            bottom: -10px;
-            font-size: 80px;
-            opacity: 0.2;
-        }
-
-        .live-prices-card {
-            margin: 0 20px 20px;
-            background: linear-gradient(135deg, var(--navy), #1A2642);
-            border-radius: var(--radius-card);
-            padding: 20px;
-            color: white;
-            box-shadow: 0 4px 15px rgba(11, 26, 59, 0.4);
-        }
-
-        .live-prices-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 10px;
-        }
-
-        .live-prices-header h3 {
-            color: white;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .live-prices-header .live-dot {
-            width: 8px;
-            height: 8px;
-            background-color: var(--red);
-            border-radius: 50%;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(255, 61, 61, 0.7); }
-            70% { box-shadow: 0 0 0 6px rgba(255, 61, 61, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 61, 61, 0); }
-        }
-
-        .prices-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-        }
-
-        .price-item {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .price-name {
-            font-size: 12px;
-            color: #A0AABF;
-            margin-bottom: 2px;
-        }
-
-        .price-val {
-            font-size: 18px;
-            font-weight: 800;
-            font-family: var(--font-heading);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .price-val.up i { color: var(--red); font-size: 10px; }
-        .price-val.down i { color: var(--green); font-size: 10px; }
-
-        .emergency-btn-container {
-            margin: 0 20px 20px;
-        }
-
-        .section-title {
-            padding: 0 20px;
-            font-size: 18px;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .section-title a {
-            font-size: 14px;
-            color: var(--blue);
-            font-weight: 600;
-            text-decoration: none;
-            font-family: var(--font-body);
-        }
-
-        .station-list {
-            padding: 0 20px 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .station-item {
-            display: flex;
-            gap: 15px;
-            padding: 15px;
-            background-color: var(--surface-color);
-            border-radius: var(--radius-card);
-            box-shadow: var(--shadow-subtle);
-            align-items: center;
-            cursor: pointer;
-        }
-
-        .station-logo {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            background-color: var(--input-bg);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 24px;
-        }
-        
-        .hp-logo { color: #1565D8; }
-        .io-logo { color: #FF6B00; }
-        .bp-logo { color: #00C853; }
-
-        .station-info {
-            flex: 1;
-        }
-
-        .station-name {
-            font-weight: 800;
-            font-size: 16px;
-            margin-bottom: 2px;
-            font-family: var(--font-heading);
-        }
-
-        .station-meta {
-            font-size: 12px;
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 6px;
-        }
-
-        .rating {
-            color: var(--yellow);
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        
-        .rating span { color: var(--text-main); }
-
-        .status-badge {
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: 700;
-        }
-        .status-open { background-color: rgba(0, 200, 83, 0.1); color: var(--green); }
-        .status-closed { background-color: rgba(255, 61, 61, 0.1); color: var(--red); }
-
-        .fuel-types-mini {
-            display: flex;
-            gap: 4px;
-        }
-
-        .fuel-pill {
-            font-size: 10px;
-            padding: 2px 6px;
-            background-color: var(--input-bg);
-            border-radius: 4px;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-
-        /* ------------------ STATION DETAIL ------------------ */
-        .hero-card {
-            background: linear-gradient(135deg, var(--blue), var(--navy));
-            padding: 30px 20px;
-            color: white;
-            text-align: center;
-            border-bottom-left-radius: 30px;
-            border-bottom-right-radius: 30px;
-            box-shadow: 0 10px 20px rgba(11, 26, 59, 0.2);
-            position: relative;
-            margin-top: -60px; /* pull up behind header */
-            padding-top: 80px;
-        }
-
-        .hero-logo {
-            width: 80px;
-            height: 80px;
-            border-radius: 20px;
-            background-color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 40px;
-            margin: 0 auto 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-
-        .hero-title {
-            font-size: 24px;
-            font-weight: 800;
-            margin-bottom: 5px;
-        }
-
-        .hero-location {
-            font-size: 14px;
-            opacity: 0.8;
-            margin-bottom: 15px;
-        }
-
-        .hero-stats {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            font-size: 14px;
-        }
-
-        .fuel-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            padding: 20px;
-        }
-
-        .fuel-card {
-            background-color: var(--surface-color);
-            border-radius: var(--radius-card);
-            padding: 15px;
-            box-shadow: var(--shadow-subtle);
-            border: 2px solid transparent;
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-
-        .fuel-card.selected {
-            border-color: var(--orange);
-            background-color: rgba(255, 107, 0, 0.05);
-        }
-
-        .fuel-card-icon {
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-
-        .fuel-card-name {
-            font-weight: 700;
-            font-size: 16px;
-        }
-
-        .fuel-card-price {
-            color: var(--orange);
-            font-weight: 800;
-            font-family: var(--font-heading);
-            font-size: 18px;
-            margin-top: 4px;
-        }
-
-        .info-cards {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            padding: 0 20px 20px;
-        }
-
-        .info-card {
-            background-color: var(--surface-color);
-            border-radius: var(--radius-card);
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: var(--shadow-subtle);
-        }
-
-        .info-card i {
-            font-size: 20px;
-            color: var(--blue);
-        }
-
-        .info-text-sm {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-
-        .info-text-lg {
-            font-size: 14px;
-            font-weight: 700;
-        }
-
-        .fixed-bottom-cta {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            padding: 20px;
-            background-color: var(--surface-color);
-            border-top: 1px solid var(--border-color);
-            z-index: 40;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
-            /* Handle bottom nav overlap */
-            padding-bottom: max(20px, env(safe-area-inset-bottom));
-        }
-
-        /* ------------------ ORDER SCREEN ------------------ */
-        .section-label {
-            font-size: 16px;
-            font-weight: 800;
-            margin: 20px 20px 10px;
-            font-family: var(--font-heading);
-        }
-
-        .vehicle-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            padding: 0 20px;
-        }
-
-        .vehicle-card {
-            background-color: var(--surface-color);
-            border-radius: var(--radius-card);
-            padding: 15px;
-            text-align: center;
-            box-shadow: var(--shadow-subtle);
-            border: 2px solid transparent;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .vehicle-card.selected {
-            border-color: var(--blue);
-            background-color: rgba(21, 101, 216, 0.05);
-        }
-
-        .vehicle-icon {
-            font-size: 32px;
-            margin-bottom: 8px;
-        }
-
-        .quantity-stepper {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-            margin: 0 20px;
-            background-color: var(--surface-color);
-            padding: 15px;
-            border-radius: var(--radius-card);
-            box-shadow: var(--shadow-subtle);
-        }
-
-        .stepper-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: rgba(255, 107, 0, 0.1);
-            color: var(--orange);
-            border: none;
-            font-size: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-        }
-
-        .stepper-btn:active {
-            background-color: var(--orange);
-            color: white;
-        }
-
-        .stepper-value {
-            font-size: 24px;
-            font-weight: 800;
-            font-family: var(--font-heading);
-            min-width: 60px;
-            text-align: center;
-        }
-
-        .address-input {
-            margin: 0 20px;
-            background-color: var(--surface-color);
-            border-radius: var(--radius-card);
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            box-shadow: var(--shadow-subtle);
-        }
-
-        .address-input input {
-            border: none;
-            background: transparent;
-            width: 100%;
-            font-size: 14px;
-            font-family: var(--font-body);
-            color: var(--text-main);
-            outline: none;
-        }
-
-        .price-breakdown {
-            margin: 20px;
-            background-color: var(--surface-color);
-            border-radius: var(--radius-card);
-            padding: 20px;
-            box-shadow: var(--shadow-subtle);
-        }
-
-        .price-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            font-size: 14px;
-            color: var(--text-muted);
-        }
-
-        .price-row.total {
-            border-top: 1px dashed var(--border-color);
-            padding-top: 12px;
-            margin-top: 12px;
-            margin-bottom: 0;
-            font-size: 18px;
-            font-weight: 800;
-            color: var(--text-main);
-            font-family: var(--font-heading);
-        }
-
-        /* ------------------ PAYMENT SCREEN ------------------ */
-        .payment-options {
-            padding: 0 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .payment-option {
-            background-color: var(--surface-color);
-            border-radius: var(--radius-card);
-            padding: 16px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            box-shadow: var(--shadow-subtle);
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: all 0.2s;
-        }
-
-        .payment-option.selected {
-            border-color: var(--orange);
-            background-color: rgba(255, 107, 0, 0.05);
-        }
-
-        .payment-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            background-color: var(--input-bg);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 20px;
-            color: var(--navy);
-        }
-
-        .payment-details {
-            flex: 1;
-        }
-
-        .payment-name {
-            font-weight: 700;
-            font-size: 16px;
-        }
-
-        .payment-radio {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            border: 2px solid var(--border-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: transparent;
-            transition: all 0.2s;
-        }
-
-        .payment-option.selected .payment-radio {
-            border-color: var(--orange);
-            background-color: var(--orange);
-            color: white;
-        }
-
-        /* ------------------ SUCCESS SCREEN ------------------ */
-        #success {
-            background: linear-gradient(135deg, var(--navy), #1A2642);
-            color: white;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .success-circle {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background-color: var(--green);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 60px;
-            color: white;
-            box-shadow: 0 0 40px rgba(0, 200, 83, 0.4);
-            margin-bottom: 30px;
-            opacity: 0;
-            transform: scale(0.5);
-        }
-
-        #success.active .success-circle {
-            animation: successPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-
-        @keyframes successPop {
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        .success-title {
-            font-size: 32px;
-            font-weight: 800;
-            margin-bottom: 10px;
-        }
-
-        .success-order-id {
-            font-size: 14px;
-            color: rgba(255,255,255,0.7);
-            margin-bottom: 30px;
-        }
-
-        .eta-pill {
-            background-color: var(--orange);
-            padding: 10px 20px;
-            border-radius: var(--radius-chip);
-            font-weight: 800;
-            font-size: 18px;
-            box-shadow: 0 4px 15px rgba(255, 107, 0, 0.3);
-            margin-bottom: 40px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .success-illustration {
-            width: 200px;
-            height: 150px;
-            margin-bottom: 40px;
-            background-image: radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, transparent 70%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 80px;
-        }
-
-        /* ------------------ TRACK SCREEN ------------------ */
-        .map-view {
-            width: 100%;
-            height: 35vh;
-            background-color: #E8F0FE;
-            position: relative;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-
-        .map-bg-grid {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: radial-gradient(var(--text-muted) 1px, transparent 1px);
-            background-size: 20px 20px;
-            opacity: 0.2;
-        }
-
-        .map-route-line {
-            position: absolute;
-            top: 30%;
-            left: 20%;
-            width: 60%;
-            height: 40%;
-            border-left: 4px dashed var(--blue);
-            border-bottom: 4px dashed var(--blue);
-            border-bottom-left-radius: 20px;
-        }
-
-        .map-driver-dot {
-            position: absolute;
-            width: 24px;
-            height: 24px;
-            background: var(--orange);
-            border-radius: 50%;
-            border: 4px solid white;
-            box-shadow: 0 4px 10px rgba(255, 107, 0, 0.5);
-            top: 30%;
-            left: 20%;
-            transform: translate(-50%, -50%);
-            animation: moveDot 8s linear infinite;
-        }
-
-        @keyframes moveDot {
-            0% { top: 30%; left: 20%; }
-            45% { top: 70%; left: 20%; }
-            55% { top: 70%; left: 20%; }
-            100% { top: 70%; left: 80%; }
-        }
-
-        .timeline {
-            padding: 0 20px;
-        }
-
-        .timeline-step {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        .timeline-step:not(:last-child)::after {
-            content: '';
-            position: absolute;
-            top: 30px;
-            left: 11px;
-            width: 2px;
-            height: calc(100% - 10px);
-            background-color: var(--border-color);
-            z-index: 1;
-        }
-
-        .timeline-step.completed:not(:last-child)::after {
-            background-color: var(--green);
-        }
-
-        .step-icon {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background-color: var(--surface-color);
-            border: 2px solid var(--border-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 10px;
-            color: transparent;
-            z-index: 2;
-        }
-
-        .timeline-step.completed .step-icon {
-            background-color: var(--green);
-            border-color: var(--green);
-            color: white;
-        }
-
-        .timeline-step.active .step-icon {
-            background-color: var(--orange);
-            border-color: var(--orange);
-            box-shadow: 0 0 0 4px rgba(255, 107, 0, 0.2);
-        }
-
-        .step-content {
-            flex: 1;
-        }
-
-        .step-title {
-            font-weight: 700;
-            font-size: 16px;
-            margin-bottom: 4px;
-        }
-
-        .step-desc {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-
-        .driver-card {
-            margin: 20px;
-            background-color: var(--surface-color);
-            border-radius: var(--radius-card);
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            box-shadow: var(--shadow-subtle);
-        }
-
-        .driver-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--orange), var(--red));
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 24px;
-        }
-
-        .driver-info {
-            flex: 1;
-        }
-
-        .driver-name {
-            font-weight: 700;
-            font-size: 16px;
-        }
-
-        .driver-meta {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-
-        .call-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: rgba(0, 200, 83, 0.1);
-            color: var(--green);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 16px;
-            border: none;
-            cursor: pointer;
-        }
-
-        /* ------------------ HISTORY SCREEN ------------------ */
-        .history-list {
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .history-card {
-            background-color: var(--surface-color);
-            border-radius: var(--radius-card);
-            padding: 16px;
-            box-shadow: var(--shadow-subtle);
-        }
-
-        .history-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .history-date {
-            font-size: 12px;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-
-        .history-status {
-            font-size: 10px;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-weight: 800;
-            background-color: rgba(0, 200, 83, 0.1);
-            color: var(--green);
-        }
-
-        .history-status.cancelled {
-            background-color: rgba(255, 61, 61, 0.1);
-            color: var(--red);
-        }
-
-        .history-body {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .history-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            background-color: var(--input-bg);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 20px;
-        }
-
-        .history-details {
-            flex: 1;
-        }
-
-        .history-title {
-            font-weight: 700;
-            font-size: 16px;
-        }
-
-        .history-price {
-            font-weight: 800;
-            font-family: var(--font-heading);
-            font-size: 16px;
-        }
-
-        /* ------------------ PROFILE SCREEN ------------------ */
-        .profile-header {
-            padding: 30px 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background: linear-gradient(135deg, var(--navy), #1A2642);
-            color: white;
-            border-bottom-left-radius: 30px;
-            border-bottom-right-radius: 30px;
-            margin-top: -60px;
-            padding-top: 80px;
-        }
-
-        .profile-avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--orange), #FF8C00);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 50px;
-            margin-bottom: 15px;
-            border: 4px solid var(--surface-color);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-
-        .profile-name {
-            font-size: 24px;
-            font-weight: 800;
-            margin-bottom: 5px;
-        }
-
-        .profile-email {
-            font-size: 14px;
-            opacity: 0.8;
-        }
-
-        .stats-row {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            margin-top: 25px;
-            background: rgba(255,255,255,0.1);
-            border-radius: var(--radius-card);
-            padding: 15px;
-        }
-
-        .stat-item {
-            text-align: center;
-            flex: 1;
-        }
-
-        .stat-item:not(:last-child) {
-            border-right: 1px solid rgba(255,255,255,0.2);
-        }
-
-        .stat-val {
-            font-size: 20px;
-            font-weight: 800;
-            font-family: var(--font-heading);
-            color: var(--orange);
-        }
-
-        .stat-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            opacity: 0.8;
-            margin-top: 4px;
-        }
-
-        .settings-list {
-            padding: 20px;
-        }
-
-        .settings-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 15px;
-            background-color: var(--surface-color);
-            border-radius: var(--radius-card);
-            margin-bottom: 10px;
-            box-shadow: var(--shadow-subtle);
-            cursor: pointer;
-        }
-
-        .settings-item-left {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .settings-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            background-color: rgba(21, 101, 216, 0.1);
-            color: var(--blue);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .settings-label {
-            font-weight: 700;
-            font-size: 16px;
-        }
-
-        /* Toggle Switch */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 50px;
-            height: 28px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: var(--border-color);
-            transition: .4s;
-            border-radius: 34px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 20px;
-            width: 20px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider {
-            background-color: var(--orange);
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(22px);
-        }
-
-        /* --- Auth & Onboarding Styles --- */
-        .onboarding-slider {
-            display: flex;
-            width: 300%;
-            height: 100%;
-            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
-        .onboarding-slide {
-            width: 33.333%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 40px 20px;
-            background: linear-gradient(180deg, var(--navy) 0%, #1A2642 100%);
-            color: white;
-            position: relative;
-        }
-        .onboarding-icon {
-            font-size: 100px;
-            margin-bottom: 40px;
-            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
-        }
-        .onboarding-title {
-            font-family: var(--font-heading);
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 15px;
-            color: var(--orange);
-        }
-        .onboarding-desc {
-            font-size: 16px;
-            opacity: 0.8;
-            line-height: 1.5;
-            max-width: 280px;
-        }
-        .onboarding-controls {
-            position: absolute;
-            bottom: 40px;
-            left: 0;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-            padding: 0 30px;
-            z-index: 5;
-        }
-        .dot-indicators {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-        .dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 5px;
-            background-color: rgba(255,255,255,0.3);
-            transition: all 0.3s ease;
-        }
-        .dot.active {
-            width: 24px;
-            background-color: var(--orange);
-        }
-
-        /* Auth Forms */
-        .auth-container {
-            padding: 40px 20px;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            overflow-y: auto;
-        }
-        .auth-header {
-            text-align: center;
-            margin-bottom: 30px;
-            margin-top: 10px;
-        }
-        .auth-logo {
-            font-family: var(--font-heading);
-            font-size: 42px;
-            font-weight: 800;
-            color: var(--navy);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-        }
-        body[data-theme="dark"] .auth-logo {
-            color: white;
-        }
-        .auth-tabs {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 30px;
-            border-bottom: 2px solid var(--border-color);
-        }
-        .auth-tab {
-            padding: 10px 30px;
-            font-weight: 700;
-            color: var(--text-muted);
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            margin-bottom: -2px;
-            transition: all 0.3s;
-            font-size: 16px;
-        }
-        .auth-tab.active {
-            color: var(--orange);
-            border-bottom-color: var(--orange);
-        }
-        .input-group {
-            margin-bottom: 20px;
-            position: relative;
-        }
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-muted);
-        }
-        .input-field {
-            width: 100%;
-            padding: 15px 15px 15px 45px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            background: var(--surface-color);
-            color: var(--text-main);
-            font-family: var(--font-body);
-            font-size: 15px;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-        .input-field:focus {
-            border-color: var(--blue);
-        }
-        .input-icon {
-            position: absolute;
-            left: 15px;
-            bottom: 16px;
-            color: var(--text-muted);
-            font-size: 18px;
-        }
-        .input-action {
-            position: absolute;
-            right: 15px;
-            bottom: 16px;
-            color: var(--text-muted);
-            font-size: 18px;
-            cursor: pointer;
-        }
-        .auth-divider {
-            display: flex;
-            align-items: center;
-            text-align: center;
-            margin: 25px 0;
-            color: var(--text-muted);
-            font-size: 14px;
-        }
-        .auth-divider::before, .auth-divider::after {
-            content: '';
-            flex: 1;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .auth-divider::before { margin-right: 15px; }
-        .auth-divider::after { margin-left: 15px; }
-        
-        .social-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            width: 100%;
-            padding: 14px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            background: var(--surface-color);
-            color: var(--text-main);
-            font-weight: 600;
-            font-size: 15px;
-            margin-bottom: 15px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .social-btn:active {
-            background: rgba(0,0,0,0.05);
-        }
-
-        /* OTP Boxes */
-        .otp-container {
-            display: flex;
-            justify-content: space-between;
-            margin: 30px 0;
-        }
-        .otp-box {
-            width: 48px;
-            height: 56px;
-            border-radius: 12px;
-            border: 2px solid var(--border-color);
-            background: var(--surface-color);
-            color: var(--text-main);
-            font-size: 24px;
-            font-weight: 700;
-            text-align: center;
-            outline: none;
-            transition: all 0.3s;
-        }
-        .otp-box:focus {
-            border-color: var(--orange);
-            box-shadow: 0 4px 12px rgba(255,107,0,0.1);
-            transform: translateY(-2px);
-        }
-        
-        /* Password Strength */
-        .pw-strength {
-            display: flex;
-            gap: 5px;
-            margin-top: -10px;
-            margin-bottom: 20px;
-        }
-        .pw-bar {
-            flex: 1;
-            height: 4px;
-            border-radius: 2px;
-            background: var(--border-color);
-            transition: background 0.3s;
-        }
-        .pw-text {
-            font-size: 12px;
-            text-align: right;
-            margin-top: 5px;
-            color: var(--text-muted);
-        }
-
-        .auth-footer {
-            margin-top: auto;
-            text-align: center;
-            padding-bottom: 20px;
-            padding-top: 20px;
-        }
-        .auth-link {
-            color: var(--blue);
-            font-weight: 700;
-            text-decoration: none;
-            cursor: pointer;
-        }
-
-
-        .logout-btn {
-            width: calc(100% - 40px);
-            margin: 10px 20px 40px;
-            padding: 15px;
-            background: transparent;
-            color: var(--red);
-            border: 2px solid var(--red);
-            border-radius: var(--radius-btn);
-            font-weight: 700;
-            text-align: center;
-            cursor: pointer;
-            font-family: var(--font-body);
-        }
-
-        /* ------------------ BOTTOM NAV ------------------ */
-        #bottom-nav {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background-color: var(--nav-bg);
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0 20px 0; /* Extra padding for iOS home indicator */
-            z-index: 50;
-            transition: transform 0.3s ease, background-color 0.3s ease;
-        }
-
-        #bottom-nav.hidden {
-            transform: translateY(100%);
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 12px;
-            font-weight: 600;
-            padding: 8px 16px;
-            border-radius: var(--radius-chip);
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-
-        .nav-item i {
-            font-size: 20px;
-            margin-bottom: 4px;
-        }
-
-        .nav-item.active {
-            color: var(--orange);
-            background-color: rgba(255, 107, 0, 0.1);
-        }
-        
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FuelGo — Mobile Application</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --orange: #E8520A;
+  --orange2: #FF6820;
+  --deep: #1A1208;
+  --deep2: #241A0E;
+  --amber: #F7A32B;
+  --surface: #FDF8F2;
+  --card: #FFFFFF;
+  --muted: #8A7B68;
+  --green: #2D8A5A;
+  --border: rgba(0,0,0,0.08);
+  --font-head: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: var(--deep);
+  font-family: var(--font-body);
+  color: var(--deep);
+  overflow-x: hidden;
+}
+
+/* ── MOBILE CONTAINER SCENARIO ── */
+.app-viewport {
+  max-width: 480px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: var(--surface);
+  position: relative;
+  box-shadow: 0 0 50px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 80px;
+}
+
+/* ── HEADER ── */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: rgba(26,18,8,0.96);
+  backdrop-filter: blur(12px);
+  border-bottom: 0.5px solid rgba(255,255,255,0.08);
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.header-brand img {
+  height: 34px;
+  width: auto;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+.header-logo {
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 22px;
+  color: white;
+  letter-spacing: -0.5px;
+}
+.header-logo span { color: var(--orange); }
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-header-emergency {
+  background: var(--orange);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-family: var(--font-head);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── HERO BANNER ── */
+.app-hero {
+  background: var(--deep);
+  color: white;
+  padding: 30px 20px 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+.app-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(232,82,10,0.15);
+  border: 0.5px solid rgba(232,82,10,0.3);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 11px;
+  color: var(--orange);
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.app-hero-h1 {
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 32px;
+  line-height: 1.1;
+  letter-spacing: -1px;
+  margin-bottom: 12px;
+}
+.app-hero-h1 span { color: var(--orange); }
+
+.app-hero-sub {
+  font-size: 14px;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+/* ── DASHBOARD CARD ── */
+.dash-card {
+  background: rgba(255,255,255,0.05);
+  border: 0.5px solid rgba(255,255,255,0.1);
+  border-radius: 18px;
+  padding: 16px;
+  backdrop-filter: blur(10px);
+}
+
+.dash-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.dash-title {
+  font-family: var(--font-head);
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+}
+
+.dash-live {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #4AE88A;
+  font-weight: 600;
+}
+
+.dash-live-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #4AE88A;
+  animation: blink 1.5s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.dash-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.dash-stat {
+  background: rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 12px 8px;
+  text-align: center;
+}
+
+.dash-stat-val {
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 18px;
+  color: white;
+}
+
+.dash-stat-lbl {
+  font-size: 10px;
+  color: rgba(255,255,255,0.4);
+  margin-top: 2px;
+}
+
+/* ── ORDER SECTION ── */
+.app-section {
+  padding: 24px 20px;
+}
+
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--orange);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.section-title {
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 24px;
+  color: var(--deep);
+  letter-spacing: -0.5px;
+  margin-bottom: 16px;
+}
+
+/* ── ORDER FORM ── */
+.order-box {
+  background: white;
+  border-radius: 20px;
+  border: 0.5px solid var(--border);
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+}
+
+.form-group { margin-bottom: 16px; }
+
+.form-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.form-input, .form-select {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--deep);
+  outline: none;
+}
+
+.fuel-selector {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.fuel-opt {
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  padding: 8px 4px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: white;
+}
+
+.fuel-opt.active {
+  border-color: var(--orange);
+  background: #FFF6F0;
+}
+
+.fuel-opt-icon { font-size: 20px; display: block; margin-bottom: 2px; }
+.fuel-opt-name { font-size: 11px; font-weight: 700; color: var(--deep); }
+.fuel-opt-price { font-size: 10px; color: var(--muted); }
+
+.qty-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.qty-btn {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--deep);
+}
+
+.qty-val {
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 24px;
+  color: var(--deep);
+  min-width: 50px;
+  text-align: center;
+}
+
+.total-banner {
+  background: var(--deep);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  color: white;
+}
+
+.total-lbl { font-size: 12px; color: rgba(255,255,255,0.5); }
+.total-val { font-family: var(--font-head); font-weight: 800; font-size: 20px; color: white; }
+
+.btn-primary {
+  width: 100%;
+  padding: 15px;
+  border-radius: 12px;
+  border: none;
+  background: var(--orange);
+  color: white;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-primary:hover { background: var(--orange2); }
+
+/* ── FEATURES GRID ── */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.feat-card {
+  background: white;
+  border-radius: 16px;
+  border: 0.5px solid var(--border);
+  padding: 16px;
+}
+
+.feat-card.emergency {
+  background: var(--deep);
+  color: white;
+  grid-column: span 2;
+}
+
+.feat-icon {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  margin-bottom: 12px;
+}
+
+.feat-title {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.feat-desc {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.feat-card.emergency .feat-desc { color: rgba(255,255,255,0.5); }
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  height: 64px;
+  background: rgba(26,18,8,0.96);
+  backdrop-filter: blur(12px);
+  border-top: 0.5px solid rgba(255,255,255,0.08);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 200;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  color: rgba(255,255,255,0.5);
+  font-size: 10px;
+  font-family: var(--font-head);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.nav-item i { font-size: 18px; }
+.nav-item.active { color: var(--orange); }
+</style>
 </head>
 <body>
 
-<div id="app-container">
-    <div id="screens-wrapper">
-        
-        <!-- 1. Splash Screen -->
-        <div id="splash" class="screen active">
-            <img src="FuelGo.png" alt="FuelGo Logo" class="splash-logo-img">
-            <div class="splash-welcome" id="splash-user-name">Welcome, Guest! 👋</div>
-            <div class="progress-bar-container">
-                <div class="progress-bar-fill"></div>
-            </div>
-        </div>
-        <!-- Onboarding Screen -->
-        <div id="onboarding" class="screen">
-            <div class="onboarding-slider" id="onboarding-slider">
-                <div class="onboarding-slide">
-                    <div class="onboarding-icon">🗺️</div>
-                    <div class="onboarding-title">Find Nearby Stations</div>
-                    <div class="onboarding-desc">Locate fuel stations around you and compare prices instantly.</div>
-                </div>
-                <div class="onboarding-slide">
-                    <div class="onboarding-icon">⛽</div>
-                    <div class="onboarding-title">Order Fuel Instantly</div>
-                    <div class="onboarding-desc">Petrol, Diesel, CNG, and EV charging delivered in minutes.</div>
-                </div>
-                <div class="onboarding-slide">
-                    <div class="onboarding-icon">📍</div>
-                    <div class="onboarding-title">Live Tracking</div>
-                    <div class="onboarding-desc">Track your delivery driver in real time to your exact location.</div>
-                </div>
-            </div>
-            <div class="onboarding-controls">
-                <div class="dot-indicators" id="onboarding-dots">
-                    <div class="dot active"></div>
-                    <div class="dot"></div>
-                    <div class="dot"></div>
-                </div>
-                <button class="btn btn-orange" id="onboarding-next-btn" onclick="nextOnboardingSlide()">Next</button>
-                <div class="auth-link" onclick="completeOnboarding()">Skip</div>
-            </div>
-        </div>
-
-        <!-- Login Screen -->
-        <div id="login" class="screen">
-            <div class="auth-container">
-                <div class="auth-header">
-                    <div class="auth-logo">
-                        <img src="FuelGo.png" alt="FuelGo Logo" style="height: 48px; width: auto; object-fit: contain;"> Fuel<span>Go</span>
-                    </div>
-                </div>
-                
-                <div class="auth-tabs">
-                    <div class="auth-tab active">Login</div>
-                    <div class="auth-tab" onclick="navigate('register')">Register</div>
-                </div>
-
-                <div class="input-group">
-                    <label>Mobile Number</label>
-                    <i class="fas fa-phone-alt input-icon"></i>
-                    <input type="tel" class="input-field" placeholder="+91 90000 00000" id="login-phone">
-                </div>
-
-                <div class="input-group">
-                    <label>Password</label>
-                    <i class="fas fa-lock input-icon"></i>
-                    <input type="password" class="input-field" placeholder="Enter password" id="login-password">
-                    <i class="fas fa-eye input-action" onclick="togglePassword('login-password')"></i>
-                </div>
-
-                <div style="text-align: right; margin-bottom: 25px;">
-                    <span class="auth-link" style="font-size: 14px;" onclick="navigate('forgot-password')">Forgot Password?</span>
-                </div>
-
-                <button class="btn btn-orange" onclick="handleLogin()">Login</button>
-
-                <div class="auth-divider">OR</div>
-
-                <button class="social-btn">
-                    <i class="fab fa-google" style="color: #DB4437;"></i> Continue with Google
-                </button>
-                <button class="social-btn" style="background: var(--navy); color: white; border-color: var(--navy);">
-                    <i class="fab fa-apple"></i> Continue with Apple
-                </button>
-
-                <div class="auth-footer">
-                    <span style="color: var(--text-muted);">Don't have an account? </span>
-                    <span class="auth-link" onclick="navigate('register')">Register</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Register Screen -->
-        <div id="register" class="screen">
-            <div class="header-bar" style="background: transparent; box-shadow: none;">
-                <button class="back-btn" onclick="navigate('login')"><i class="fas fa-arrow-left"></i></button>
-            </div>
-            <div class="auth-container" style="padding-top: 10px;">
-                <div class="auth-header">
-                    <h2 style="font-size: 28px; color: var(--navy); font-family: var(--font-heading);">Create Account</h2>
-                    <p style="color: var(--text-muted); margin-top: 5px;">Sign up to get fuel delivered to your door.</p>
-                </div>
-
-                <div class="input-group">
-                    <label>Full Name</label>
-                    <i class="fas fa-user input-icon"></i>
-                    <input type="text" class="input-field" placeholder="John Doe">
-                </div>
-
-                <div class="input-group">
-                    <label>Mobile Number</label>
-                    <i class="fas fa-phone-alt input-icon"></i>
-                    <input type="tel" class="input-field" placeholder="+91 90000 00000">
-                </div>
-
-                <div class="input-group">
-                    <label>Email Address</label>
-                    <i class="fas fa-envelope input-icon"></i>
-                    <input type="email" class="input-field" placeholder="johndoe@email.com">
-                </div>
-
-                <div class="input-group">
-                    <label>Password</label>
-                    <i class="fas fa-lock input-icon"></i>
-                    <input type="password" class="input-field" placeholder="Create a password" id="reg-password" oninput="updatePasswordStrength(this.value, 'pw')">
-                    <i class="fas fa-eye input-action" onclick="togglePassword('reg-password')"></i>
-                </div>
-                
-                <div class="pw-strength">
-                    <div class="pw-bar" id="pw-bar-1"></div>
-                    <div class="pw-bar" id="pw-bar-2"></div>
-                    <div class="pw-bar" id="pw-bar-3"></div>
-                </div>
-
-                <div class="input-group">
-                    <label>Confirm Password</label>
-                    <i class="fas fa-lock input-icon"></i>
-                    <input type="password" class="input-field" placeholder="Confirm password" id="reg-confirm">
-                    <i class="fas fa-eye input-action" onclick="togglePassword('reg-confirm')"></i>
-                </div>
-
-                <div style="display: flex; gap: 10px; align-items: flex-start; margin-bottom: 25px;">
-                    <input type="checkbox" id="terms" style="margin-top: 4px;">
-                    <label for="terms" style="font-size: 13px; color: var(--text-muted); line-height: 1.4;">
-                        I agree to FuelGo's <span class="auth-link">Terms of Service</span> and <span class="auth-link">Privacy Policy</span>.
-                    </label>
-                </div>
-
-                <button class="btn btn-orange" onclick="navigate('otp')">Create Account</button>
-
-                <div class="auth-footer">
-                    <span style="color: var(--text-muted);">Already have an account? </span>
-                    <span class="auth-link" onclick="navigate('login')">Login</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- OTP Verify Screen -->
-        <div id="otp" class="screen">
-            <div class="header-bar" style="background: transparent; box-shadow: none;">
-                <button class="back-btn" onclick="navigate('register')"><i class="fas fa-arrow-left"></i></button>
-            </div>
-            <div class="auth-container" style="padding-top: 10px;">
-                <div class="auth-header">
-                    <h2 style="font-size: 28px; color: var(--navy); font-family: var(--font-heading);">Verify Number</h2>
-                    <p style="color: var(--text-muted); margin-top: 10px; line-height: 1.5;">We've sent a 6-digit OTP to<br><strong style="color: var(--text-main);">+91 98765 43210</strong></p>
-                </div>
-
-                <div class="otp-container">
-                    <input type="tel" class="otp-box" maxlength="1" onkeyup="focusNextOtp(this, 1)" id="otp1">
-                    <input type="tel" class="otp-box" maxlength="1" onkeyup="focusNextOtp(this, 2)" id="otp2">
-                    <input type="tel" class="otp-box" maxlength="1" onkeyup="focusNextOtp(this, 3)" id="otp3">
-                    <input type="tel" class="otp-box" maxlength="1" onkeyup="focusNextOtp(this, 4)" id="otp4">
-                    <input type="tel" class="otp-box" maxlength="1" onkeyup="focusNextOtp(this, 5)" id="otp5">
-                    <input type="tel" class="otp-box" maxlength="1" onkeyup="focusNextOtp(this, 6)" id="otp6">
-                </div>
-
-                <div style="text-align: center; margin-bottom: 40px; color: var(--text-muted);">
-                    <span id="otp-timer-text">Resend OTP in <strong style="color: var(--text-main);" id="otp-timer">0:60</strong></span>
-                    <span id="otp-resend-link" class="auth-link" style="display: none;" onclick="startOtpTimer()">Resend OTP</span>
-                </div>
-
-                <button class="btn btn-orange" onclick="handleOtpVerify()">Verify & Continue</button>
-            </div>
-        </div>
-
-        <!-- Forgot Password Screen -->
-        <div id="forgot-password" class="screen">
-            <div class="header-bar" style="background: transparent; box-shadow: none;">
-                <button class="back-btn" onclick="navigate('login')"><i class="fas fa-arrow-left"></i></button>
-            </div>
-            <div class="auth-container" style="padding-top: 10px;">
-                <div class="auth-header">
-                    <h2 style="font-size: 28px; color: var(--navy); font-family: var(--font-heading);">Reset Password</h2>
-                    <p style="color: var(--text-muted); margin-top: 10px; line-height: 1.5;">Enter your registered mobile number or email to receive a password reset link.</p>
-                </div>
-
-                <div class="input-group">
-                    <label>Mobile Number or Email</label>
-                    <i class="fas fa-user input-icon"></i>
-                    <input type="text" class="input-field" placeholder="Enter mobile or email">
-                </div>
-
-                <div id="reset-success" style="display: none; background: rgba(0, 200, 83, 0.1); color: var(--green); padding: 15px; border-radius: 10px; margin-bottom: 25px; text-align: center; font-weight: 600;">
-                    <i class="fas fa-check-circle"></i> Reset link sent!
-                </div>
-
-                <button class="btn btn-orange" id="reset-btn" onclick="handleForgotPassword()">Send Reset Link</button>
-            </div>
-        </div>
-
-        <!-- Set New Password Screen -->
-        <div id="set-password" class="screen">
-            <div class="header-bar" style="background: transparent; box-shadow: none;">
-                <button class="back-btn" onclick="navigate('login')"><i class="fas fa-arrow-left"></i></button>
-            </div>
-            <div class="auth-container" style="padding-top: 10px;">
-                <div class="auth-header">
-                    <h2 style="font-size: 28px; color: var(--navy); font-family: var(--font-heading);">Set New Password</h2>
-                    <p style="color: var(--text-muted); margin-top: 10px;">Create a strong password for your account.</p>
-                </div>
-
-                <div class="input-group">
-                    <label>New Password</label>
-                    <i class="fas fa-lock input-icon"></i>
-                    <input type="password" class="input-field" placeholder="Create a password" id="new-password" oninput="updatePasswordStrength(this.value, 'new-pw')">
-                    <i class="fas fa-eye input-action" onclick="togglePassword('new-password')"></i>
-                </div>
-                
-                <div class="pw-strength">
-                    <div class="pw-bar" id="new-pw-bar-1"></div>
-                    <div class="pw-bar" id="new-pw-bar-2"></div>
-                    <div class="pw-bar" id="new-pw-bar-3"></div>
-                </div>
-
-                <div class="input-group">
-                    <label>Confirm Password</label>
-                    <i class="fas fa-lock input-icon"></i>
-                    <input type="password" class="input-field" placeholder="Confirm password" id="new-confirm">
-                    <i class="fas fa-eye input-action" onclick="togglePassword('new-confirm')"></i>
-                </div>
-
-                <button class="btn btn-orange" onclick="navigate('login')">Update Password</button>
-            </div>
-        </div>
-
-        <!-- 2. Home Screen -->
-        <div id="home" class="screen">
-            <div class="home-header">
-                <div class="location-pill">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <span>Chennai, TN</span>
-                    <i class="fas fa-chevron-down" style="font-size:10px; color:var(--text-muted); margin-left:4px;"></i>
-                </div>
-                <div class="header-actions">
-                    <button class="icon-btn">
-                        <i class="far fa-bell"></i>
-                        <span class="badge-dot"></span>
-                    </button>
-                    <div class="profile-pic" onclick="navigate('profile', document.querySelectorAll('.nav-item')[4])">
-                        👨🏽
-                    </div>
-                </div>
-            </div>
-
-            <div class="greeting">
-                Hello, <span id="home-user-name">Pawan Teja</span>! 
-            </div>
-
-            <div class="search-bar" onclick="navigate('order', document.querySelectorAll('.nav-item')[1])">
-                <i class="fas fa-search"></i>
-                <span>Search for fuel types, stations...</span>
-            </div>
-
-            <div class="filter-scroll">
-                <div class="filter-chip active">All</div>
-                <div class="filter-chip">Petrol</div>
-                <div class="filter-chip">Diesel</div>
-                <div class="filter-chip">Premium</div>
-                <div class="filter-chip">EV Charging</div>
-                <div class="filter-chip">CNG</div>
-            </div>
-
-            <div class="promo-banner">
-                <i class="fas fa-percent promo-icon"></i>
-                <div class="promo-badge">10% OFF</div>
-                <div class="promo-title">First Order Free! 🚀</div>
-                <div class="promo-desc">Use code <b>FUELGO10</b> · Save ₹100 on delivery</div>
-            </div>
-
-            <div class="live-prices-card">
-                <div class="live-prices-header">
-                    <h3><div class="live-dot"></div> Live Fuel Prices (₹)</h3>
-                    <i class="fas fa-info-circle" style="color: rgba(255,255,255,0.5);"></i>
-                </div>
-                <div class="prices-grid">
-                    <div class="price-item">
-                        <div class="price-name">Petrol</div>
-                        <div class="price-val up">102.86 <i class="fas fa-caret-up"></i></div>
-                    </div>
-                    <div class="price-item">
-                        <div class="price-name">Diesel</div>
-                        <div class="price-val down">89.62 <i class="fas fa-caret-down"></i></div>
-                    </div>
-                    <div class="price-item">
-                        <div class="price-name">CNG / Kg</div>
-                        <div class="price-val up">74.50 <i class="fas fa-caret-up"></i></div>
-                    </div>
-                    <div class="price-item">
-                        <div class="price-name">EV / kWh</div>
-                        <div class="price-val down">12.00 <i class="fas fa-caret-down"></i></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="emergency-btn-container">
-                <button class="btn btn-red" onclick="navigate('emergency')">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    Emergency Fuel - Stranded?
-                </button>
-            </div>
-
-            <div id="home-map" class="map-home"></div>
-
-            <div class="section-title">
-                <h2>Nearby Stations</h2>
-                <a href="#">See All</a>
-            </div>
-
-            <div class="station-list">
-                <!-- Station 1 -->
-                <div class="station-item" onclick="navigate('station-detail')">
-                    <div class="station-logo io-logo"><i class="fas fa-fire-flame-curved"></i></div>
-                    <div class="station-info">
-                        <div class="station-name">IndianOil Pump</div>
-                        <div class="station-meta">
-                            <span class="rating"><i class="fas fa-star"></i> <span>4.8</span></span>
-                            <span>•</span>
-                            <span>1.2 km</span>
-                            <span>•</span>
-                            <span class="status-badge status-open">OPEN</span>
-                        </div>
-                        <div class="fuel-types-mini">
-                            <span class="fuel-pill">Petrol</span>
-                            <span class="fuel-pill">Diesel</span>
-                            <span class="fuel-pill">Premium</span>
-                        </div>
-                    </div>
-                    <i class="fas fa-chevron-right" style="color: var(--text-muted);"></i>
-                </div>
-
-                <!-- Station 2 -->
-                <div class="station-item" onclick="navigate('station-detail')">
-                    <div class="station-logo hp-logo"><i class="fas fa-gas-pump"></i></div>
-                    <div class="station-info">
-                        <div class="station-name">HP Auto Care</div>
-                        <div class="station-meta">
-                            <span class="rating"><i class="fas fa-star"></i> <span>4.5</span></span>
-                            <span>•</span>
-                            <span>2.5 km</span>
-                            <span>•</span>
-                            <span class="status-badge status-open">OPEN</span>
-                        </div>
-                        <div class="fuel-types-mini">
-                            <span class="fuel-pill">Petrol</span>
-                            <span class="fuel-pill">Diesel</span>
-                            <span class="fuel-pill">EV</span>
-                        </div>
-                    </div>
-                    <i class="fas fa-chevron-right" style="color: var(--text-muted);"></i>
-                </div>
-            </div>
-            
-            <div style="height: 20px;"></div> <!-- Bottom padding -->
-        </div>
-
-        <!-- 3. Station Detail Screen -->
-        <div id="station-detail" class="screen">
-            <div class="header-bar" style="background: transparent; position: absolute; width: 100%; top: 0; box-shadow: none; backdrop-filter: none;">
-                <button class="back-btn" onclick="goBack()" style="color: white; background: rgba(0,0,0,0.2); border-radius: 50%;"><i class="fas fa-arrow-left"></i></button>
-            </div>
-            
-            <div id="station-map" class="map-station"></div>
-            <div class="hero-card" style="margin-top: -20px; z-index: 2; position: relative;">
-                <div class="hero-logo io-logo"><i class="fas fa-fire-flame-curved"></i></div>
-                <div class="hero-title">IndianOil Pump</div>
-                <div class="hero-location"><i class="fas fa-map-marker-alt"></i> T. Nagar, Chennai</div>
-                <div class="hero-stats">
-                    <span class="rating"><i class="fas fa-star"></i> <span>4.8 (1.2k reviews)</span></span>
-                    <span class="status-badge status-open">OPEN</span>
-                </div>
-            </div>
-
-            <div class="section-label">Available Fuels</div>
-            <div class="fuel-grid">
-                <div class="fuel-card">
-                    <div class="fuel-card-icon">⛽</div>
-                    <div class="fuel-card-name">Petrol</div>
-                    <div class="fuel-card-price">₹102.86</div>
-                </div>
-                <div class="fuel-card">
-                    <div class="fuel-card-icon">🛢️</div>
-                    <div class="fuel-card-name">Diesel</div>
-                    <div class="fuel-card-price">₹89.62</div>
-                </div>
-                <div class="fuel-card">
-                    <div class="fuel-card-icon">⭐</div>
-                    <div class="fuel-card-name">Premium</div>
-                    <div class="fuel-card-price">₹112.50</div>
-                </div>
-                <div class="fuel-card">
-                    <div class="fuel-card-icon">⚡</div>
-                    <div class="fuel-card-name">EV Charge</div>
-                    <div class="fuel-card-price">₹12.00</div>
-                </div>
-            </div>
-
-            <div class="section-label">Information</div>
-            <div class="info-cards">
-                <div class="info-card">
-                    <i class="fas fa-clock"></i>
-                    <div>
-                        <div class="info-text-sm">Delivery Time</div>
-                        <div class="info-text-lg">~15 mins</div>
-                    </div>
-                </div>
-                <div class="info-card">
-                    <i class="fas fa-tint"></i>
-                    <div>
-                        <div class="info-text-sm">Minimum Order</div>
-                        <div class="info-text-lg">2 Litres</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="fixed-bottom-cta">
-                <button class="btn btn-orange" onclick="navigate('order', document.querySelectorAll('.nav-item')[1])">
-                    🛒 Order Fuel Now
-                </button>
-            </div>
-        </div>
-
-        <!-- 4. Order / Fuel Selection Screen -->
-        <div id="order" class="screen">
-            <div class="header-bar">
-                <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i></button>
-                <h2 style="font-size: 18px;">Place Order</h2>
-                <div style="width:36px;"></div>
-            </div>
-
-            <div class="section-label">1. Select Fuel Type</div>
-            <div class="fuel-grid" id="order-fuel-grid">
-                <div class="fuel-card selected" onclick="selectFuel('petrol', this)">
-                    <div class="fuel-card-icon">⛽</div>
-                    <div class="fuel-card-name">Petrol</div>
-                    <div class="fuel-card-price">₹102.86</div>
-                </div>
-                <div class="fuel-card" onclick="selectFuel('diesel', this)">
-                    <div class="fuel-card-icon">🛢️</div>
-                    <div class="fuel-card-name">Diesel</div>
-                    <div class="fuel-card-price">₹89.62</div>
-                </div>
-                <div class="fuel-card" onclick="selectFuel('premium', this)">
-                    <div class="fuel-card-icon">⭐</div>
-                    <div class="fuel-card-name">Premium</div>
-                    <div class="fuel-card-price">₹112.50</div>
-                </div>
-                <div class="fuel-card" onclick="selectFuel('cng', this)">
-                    <div class="fuel-card-icon">💨</div>
-                    <div class="fuel-card-name">CNG</div>
-                    <div class="fuel-card-price">₹74.50</div>
-                </div>
-            </div>
-
-            <div class="section-label">2. Select Vehicle</div>
-            <div class="vehicle-grid">
-                <div class="vehicle-card selected" onclick="selectVehicle(this)">
-                    <div class="vehicle-icon">🏍️</div>
-                    <div class="fuel-card-name">Bike</div>
-                </div>
-                <div class="vehicle-card" onclick="selectVehicle(this)">
-                    <div class="vehicle-icon">🚗</div>
-                    <div class="fuel-card-name">Car</div>
-                </div>
-                <div class="vehicle-card" onclick="selectVehicle(this)">
-                    <div class="vehicle-icon">🚚</div>
-                    <div class="fuel-card-name">Truck</div>
-                </div>
-                <div class="vehicle-card" onclick="selectVehicle(this)">
-                    <div class="vehicle-icon">⚙️</div>
-                    <div class="fuel-card-name">Generator</div>
-                </div>
-            </div>
-
-            <div class="section-label">3. Quantity (Litres)</div>
-            <div class="quantity-stepper">
-                <button class="stepper-btn" onclick="updateQty(-1)"><i class="fas fa-minus"></i></button>
-                <div class="stepper-value" id="qty-val">2 L</div>
-                <button class="stepper-btn" onclick="updateQty(1)"><i class="fas fa-plus"></i></button>
-            </div>
-
-            <div class="section-label">4. Delivery Location</div>
-            <div class="address-input" style="z-index: 10;">
-                <i class="fas fa-search" style="color: var(--blue);"></i>
-                <input type="text" id="order-autocomplete" placeholder="Search delivery location..." />
-            </div>
-            <div class="map-order">
-                <div id="order-map" style="width: 100%; height: 100%; border-radius: var(--radius-card); overflow: hidden;"></div>
-                <div class="map-center-pin">🔴</div>
-                <button class="current-location-btn" onclick="centerOrderMapOnGPS()"><i class="fas fa-location-arrow"></i></button>
-            </div>
-
-            <div class="price-breakdown">
-                <div class="price-row">
-                    <span>Fuel Cost (<span id="calc-qty">2</span>L × ₹<span id="calc-rate">102.86</span>)</span>
-                    <span>₹<span id="calc-base">205.72</span></span>
-                </div>
-                <div class="price-row">
-                    <span>Delivery Fee</span>
-                    <span style="color: var(--green); font-weight: 700;">FREE</span>
-                </div>
-                <div class="price-row total">
-                    <span>Total Amount</span>
-                    <span>₹<span id="calc-total">205.72</span></span>
-                </div>
-            </div>
-
-            <div style="height: 100px;"></div>
-
-            <div class="fixed-bottom-cta">
-                <button class="btn btn-orange" onclick="navigate('payment')">
-                    Proceed to Payment
-                </button>
-            </div>
-        </div>
-
-        <!-- 5. Payment Screen -->
-        <div id="payment" class="screen">
-            <div class="header-bar">
-                <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i></button>
-                <h2 style="font-size: 18px;">Payment</h2>
-                <div style="width:36px;"></div>
-            </div>
-
-            <div class="price-breakdown" style="margin-top: 10px;">
-                <div class="price-row total" style="border: none; margin: 0; padding: 0;">
-                    <span>Amount to Pay</span>
-                    <span style="font-size: 24px;">₹<span id="payment-total">205.72</span></span>
-                </div>
-            </div>
-
-            <div class="section-label">Payment Method</div>
-            <div class="payment-options">
-                <div class="payment-option selected" onclick="selectPayment(this)">
-                    <div class="payment-icon"><i class="fas fa-qrcode"></i></div>
-                    <div class="payment-details">
-                        <div class="payment-name">UPI</div>
-                        <div class="info-text-sm">GPay, PhonePe, Paytm</div>
-                    </div>
-                    <div class="payment-radio"><i class="fas fa-check" style="font-size: 12px;"></i></div>
-                </div>
-
-                <div class="payment-option" onclick="selectPayment(this)">
-                    <div class="payment-icon"><i class="far fa-credit-card"></i></div>
-                    <div class="payment-details">
-                        <div class="payment-name">Credit / Debit Card</div>
-                        <div class="info-text-sm">Visa, Mastercard, RuPay</div>
-                    </div>
-                    <div class="payment-radio"><i class="fas fa-check" style="font-size: 12px;"></i></div>
-                </div>
-
-                <div class="payment-option" onclick="selectPayment(this)">
-                    <div class="payment-icon"><i class="fas fa-university"></i></div>
-                    <div class="payment-details">
-                        <div class="payment-name">Net Banking</div>
-                        <div class="info-text-sm">All major banks supported</div>
-                    </div>
-                    <div class="payment-radio"><i class="fas fa-check" style="font-size: 12px;"></i></div>
-                </div>
-
-                <div class="payment-option" onclick="selectPayment(this)">
-                    <div class="payment-icon"><i class="fas fa-money-bill-wave"></i></div>
-                    <div class="payment-details">
-                        <div class="payment-name">Cash on Delivery</div>
-                        <div class="info-text-sm">Pay when fuel arrives</div>
-                    </div>
-                    <div class="payment-radio"><i class="fas fa-check" style="font-size: 12px;"></i></div>
-                </div>
-            </div>
-
-            <div style="height: 100px;"></div>
-
-            <div class="fixed-bottom-cta">
-                <button class="btn btn-orange" onclick="placeOrder()">
-                    Place Order
-                </button>
-            </div>
-        </div>
-
-        <!-- 6. Success Screen -->
-        <div id="success" class="screen">
-            <div class="success-circle">
-                <i class="fas fa-check"></i>
-            </div>
-            <div class="success-title">Order Placed!</div>
-            <div class="success-order-id">Order ID: #FG-892401</div>
-
-            <div class="success-illustration">
-                🚚
-            </div>
-
-            <div class="eta-pill">
-                <i class="fas fa-clock"></i> ETA: ~15 mins
-            </div>
-
-            <button class="btn btn-orange" style="max-width: 300px;" onclick="navigate('track', document.querySelectorAll('.nav-item')[2])">
-                Track My Order
-            </button>
-        </div>
-
-        <!-- 7. Live Tracking Screen -->
-        <div id="track" class="screen">
-            <div class="header-bar">
-                <h2 style="font-size: 18px;">Track Order</h2>
-                <div class="location-pill" style="font-size: 12px; padding: 4px 8px;">
-                    <i class="fas fa-clock" style="color: var(--orange);"></i> ~15m
-                </div>
-            </div>
-
-            <div id="track-map" class="map-track"></div>
-
-            <div class="track-bottom-sheet" style="position: absolute; bottom: 0; left: 0; width: 100%; z-index: 10; background: var(--bg-color); border-radius: 20px 20px 0 0; box-shadow: 0 -4px 20px rgba(0,0,0,0.1); max-height: 50vh; overflow-y: auto;">
-                <div style="width: 40px; height: 5px; background: var(--border-color); border-radius: 5px; margin: 15px auto;"></div>
-                <div class="driver-card" style="margin-top: 0;">
-                <div class="driver-avatar">👨🏾‍🦱</div>
-                <div class="driver-info">
-                    <div class="driver-name">Raju Singh</div>
-                    <div class="driver-meta">MH 04 AB 1234 • ⭐ 4.9</div>
-                </div>
-                <button class="call-btn"><i class="fas fa-phone-alt"></i></button>
-            </div>
-
-            <div class="timeline">
-                <div class="timeline-step completed">
-                    <div class="step-icon"><i class="fas fa-check"></i></div>
-                    <div class="step-content">
-                        <div class="step-title">Order Confirmed</div>
-                        <div class="step-desc">10:45 AM</div>
-                    </div>
-                </div>
-                <div class="timeline-step completed">
-                    <div class="step-icon"><i class="fas fa-check"></i></div>
-                    <div class="step-content">
-                        <div class="step-title">Fuel Loaded</div>
-                        <div class="step-desc">10:50 AM</div>
-                    </div>
-                </div>
-                <div class="timeline-step active">
-                    <div class="step-icon"></div>
-                    <div class="step-content">
-                        <div class="step-title">En Route</div>
-                        <div class="step-desc" style="color: var(--orange); font-weight: 600;">Arriving in ~15 mins</div>
-                    </div>
-                </div>
-                <div class="timeline-step">
-                    <div class="step-icon"></div>
-                    <div class="step-content">
-                        <div class="step-title">Delivered</div>
-                        <div class="step-desc">Pending</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        </div>
-
-        <!-- 8. Emergency Delivery Screen -->
-        <div id="emergency" class="screen">
-            <div class="header-bar" style="background-color: var(--red); color: white;">
-                <button class="back-btn" onclick="goBack()" style="color: white;"><i class="fas fa-arrow-left"></i></button>
-                <h2 style="font-size: 18px; color: white;">SOS Delivery</h2>
-                <div style="width:36px;"></div>
-            </div>
-
-            <div style="padding: 20px; text-align: center;">
-                <i class="fas fa-exclamation-triangle" style="font-size: 60px; color: var(--red); margin: 20px 0;"></i>
-                <h2 style="font-size: 24px; margin-bottom: 10px;">Stranded?</h2>
-                <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 30px;">We'll deliver 5L of emergency fuel to your exact location within 15 minutes.</p>
-            </div>
-
-            <div class="section-label">Your Location</div>
-            <div id="emergency-map" class="map-emergency"></div>
-            <div class="address-input">
-                <i class="fas fa-location-arrow" style="color: var(--red);"></i>
-                <input type="text" id="emergency-address" value="Detecting location..." />
-            </div>
-
-            <div class="section-label">Select Fuel</div>
-            <div class="vehicle-grid">
-                <div class="vehicle-card selected" onclick="selectVehicle(this)">
-                    <div class="vehicle-icon">⛽</div>
-                    <div class="fuel-card-name">Petrol</div>
-                </div>
-                <div class="vehicle-card" onclick="selectVehicle(this)">
-                    <div class="vehicle-icon">🛢️</div>
-                    <div class="fuel-card-name">Diesel</div>
-                </div>
-            </div>
-
-            <div class="price-breakdown">
-                <div class="price-row">
-                    <span>Emergency Kit (5L)</span>
-                    <span>₹550.00</span>
-                </div>
-                <div class="price-row">
-                    <span>Priority Delivery</span>
-                    <span style="color: var(--red);">₹100.00</span>
-                </div>
-                <div class="price-row total">
-                    <span>Total Amount</span>
-                    <span>₹650.00</span>
-                </div>
-            </div>
-
-            <div style="height: 100px;"></div>
-
-            <div class="fixed-bottom-cta">
-                <button class="btn btn-red" onclick="placeOrder()">
-                    GET HELP NOW
-                </button>
-                <div style="text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 10px;">Emergency surcharge applied</div>
-            </div>
-        </div>
-
-        <!-- 9. Orders History Screen -->
-        <div id="history" class="screen">
-            <div class="header-bar">
-                <h2 style="font-size: 18px;">Order History</h2>
-                <div style="width:24px;"></div>
-            </div>
-
-            <div class="history-list">
-                <div class="history-card">
-                    <div class="history-header">
-                        <div class="history-date">Today, 10:45 AM</div>
-                        <div class="history-status" style="color: var(--orange); background: rgba(255, 107, 0, 0.1);">ACTIVE</div>
-                    </div>
-                    <div class="history-body">
-                        <div class="history-icon" style="color: var(--orange);">⛽</div>
-                        <div class="history-details">
-                            <div class="history-title">Petrol (2L)</div>
-                            <div class="info-text-sm">A-402, Skyline Apts</div>
-                        </div>
-                        <div class="history-price">₹205.72</div>
-                    </div>
-                </div>
-
-                <div class="history-card">
-                    <div class="history-header">
-                        <div class="history-date">May 05, 08:30 PM</div>
-                        <div class="history-status">DELIVERED</div>
-                    </div>
-                    <div class="history-body">
-                        <div class="history-icon" style="color: var(--blue);">🛢️</div>
-                        <div class="history-details">
-                            <div class="history-title">Diesel (10L)</div>
-                            <div class="info-text-sm">Office Parking Lot</div>
-                        </div>
-                        <div class="history-price">₹896.20</div>
-                    </div>
-                </div>
-
-                <div class="history-card">
-                    <div class="history-header">
-                        <div class="history-date">Apr 28, 02:15 PM</div>
-                        <div class="history-status cancelled">CANCELLED</div>
-                    </div>
-                    <div class="history-body">
-                        <div class="history-icon" style="color: var(--orange);">⛽</div>
-                        <div class="history-details">
-                            <div class="history-title">Petrol (5L)</div>
-                            <div class="info-text-sm">A-402, Skyline Apts</div>
-                        </div>
-                        <div class="history-price">₹514.30</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 10. Profile Screen -->
-        <div id="profile" class="screen">
-            <div class="header-bar" style="background: transparent; position: absolute; width: 100%; top: 0; box-shadow: none; backdrop-filter: none;">
-                <h2 style="font-size: 18px; color: white; width: 100%; text-align: center;">My Profile</h2>
-            </div>
-
-            <div class="profile-header">
-                <div class="profile-avatar">👨🏽</div>
-                <div class="profile-name">Pawan Teja</div>
-                <div class="profile-email">pawan.teja@email.com • +91 98765 43210</div>
-
-                <div class="stats-row">
-                    <div class="stat-item">
-                        <div class="stat-val">12</div>
-                        <div class="stat-label">Orders</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-val">45L</div>
-                        <div class="stat-label">Saved</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-val">850</div>
-                        <div class="stat-label">Points</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="settings-list">
-                <div class="settings-item">
-                    <div class="settings-item-left">
-                        <div class="settings-icon"><i class="fas fa-car"></i></div>
-                        <div class="settings-label">Saved Vehicles</div>
-                    </div>
-                    <i class="fas fa-chevron-right" style="color: var(--text-muted);"></i>
-                </div>
-                <div class="settings-item">
-                    <div class="settings-item-left">
-                        <div class="settings-icon"><i class="fas fa-map-marker-alt"></i></div>
-                        <div class="settings-label">Saved Addresses</div>
-                    </div>
-                    <i class="fas fa-chevron-right" style="color: var(--text-muted);"></i>
-                </div>
-                <div class="settings-item">
-                    <div class="settings-item-left">
-                        <div class="settings-icon"><i class="fas fa-credit-card"></i></div>
-                        <div class="settings-label">Payment Methods</div>
-                    </div>
-                    <i class="fas fa-chevron-right" style="color: var(--text-muted);"></i>
-                </div>
-                <div class="settings-item">
-                    <div class="settings-item-left">
-                        <div class="settings-icon"><i class="fas fa-bell"></i></div>
-                        <div class="settings-label">Notifications</div>
-                    </div>
-                    <i class="fas fa-chevron-right" style="color: var(--text-muted);"></i>
-                </div>
-                <div class="settings-item">
-                    <div class="settings-item-left">
-                        <div class="settings-icon" style="background-color: rgba(255, 107, 0, 0.1); color: var(--orange);"><i class="fas fa-moon"></i></div>
-                        <div class="settings-label">Dark Mode</div>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="dark-mode-toggle" onchange="toggleDarkMode(event)">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="settings-item">
-                    <div class="settings-item-left">
-                        <div class="settings-icon"><i class="fas fa-headset"></i></div>
-                        <div class="settings-label">Help & Support</div>
-                    </div>
-                    <i class="fas fa-chevron-right" style="color: var(--text-muted);"></i>
-                </div>
-            </div>
-
-            <button class="logout-btn" onclick="handleLogout()">Sign Out</button>
-            <div style="height: 40px;"></div>
-        </div>
-
+<div class="app-viewport">
+  <!-- ── HEADER ── -->
+  <header>
+    <a href="#" class="header-brand">
+      <img src="FuelGo.png" alt="FuelGo Logo">
+      <span class="header-logo">Fuel<span>Go</span></span>
+    </a>
+    <div class="header-right">
+      <button class="btn-header-emergency" onclick="triggerEmergency()">
+        ⚡ SOS
+      </button>
     </div>
+  </header>
 
-    <!-- Bottom Navigation -->
-    <div id="bottom-nav" class="hidden">
-        <div class="nav-item active" onclick="navigate('home', this)">
-            <i class="fas fa-home"></i>
-            <span>Home</span>
+  <!-- ── HERO HERO ── -->
+  <div class="app-hero">
+    <div class="app-hero-badge">⚡ 30-min SLA Guaranteed Delivery</div>
+    <h1 class="app-hero-h1">Fuel delivered<br><span>to your door.</span></h1>
+    <p class="app-hero-sub">Order petrol, diesel, premium or LPG directly to your vehicle anywhere in Chennai.</p>
+
+    <!-- LIVE DASHBOARD -->
+    <div class="dash-card">
+      <div class="dash-header">
+        <div class="dash-title">Live Order Status</div>
+        <div class="dash-live"><div class="dash-live-dot"></div> 3 active orders</div>
+      </div>
+      <div class="dash-stats">
+        <div class="dash-stat">
+          <div class="dash-stat-val">₹2,059</div>
+          <div class="dash-stat-lbl">Spend</div>
         </div>
-        <div class="nav-item" onclick="navigate('order', this)">
-            <i class="fas fa-gas-pump"></i>
-            <span>Order</span>
+        <div class="dash-stat">
+          <div class="dash-stat-val">340L</div>
+          <div class="dash-stat-lbl">Delivered</div>
         </div>
-        <div class="nav-item" onclick="navigate('track', this)">
-            <i class="fas fa-map-marker-alt"></i>
-            <span>Track</span>
+        <div class="dash-stat">
+          <div class="dash-stat-val">1,240</div>
+          <div class="dash-stat-lbl">Points</div>
         </div>
-        <div class="nav-item" onclick="navigate('history', this)">
-            <i class="fas fa-clipboard-list"></i>
-            <span>Orders</span>
-        </div>
-        <div class="nav-item" onclick="navigate('profile', this)">
-            <i class="fas fa-user"></i>
-            <span>Profile</span>
-        </div>
+      </div>
     </div>
+  </div>
+
+  <!-- ── ORDER SECTION ── -->
+  <div class="app-section">
+    <div class="section-label">Instant Fuel Dispatch</div>
+    <div class="section-title">Place Fuel Order</div>
+
+    <div class="order-box">
+      <div class="form-group">
+        <label class="form-label">Delivery Location</label>
+        <input type="text" class="form-input" value="Anna Nagar, Chennai — 600040">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Fuel Type</label>
+        <div class="fuel-selector">
+          <div class="fuel-opt active" onclick="selectAppFuel(this, 'Petrol', 101.5)">
+            <span class="fuel-opt-icon">⛽</span>
+            <div class="fuel-opt-name">Petrol</div>
+            <div class="fuel-opt-price">₹101.5</div>
+          </div>
+          <div class="fuel-opt" onclick="selectAppFuel(this, 'Diesel', 89.2)">
+            <span class="fuel-opt-icon">🛢️</span>
+            <div class="fuel-opt-name">Diesel</div>
+            <div class="fuel-opt-price">₹89.2</div>
+          </div>
+          <div class="fuel-opt" onclick="selectAppFuel(this, 'Premium', 112)">
+            <span class="fuel-opt-icon">✨</span>
+            <div class="fuel-opt-name">Premium</div>
+            <div class="fuel-opt-price">₹112</div>
+          </div>
+          <div class="fuel-opt" onclick="selectAppFuel(this, 'LPG', 68)">
+            <span class="fuel-opt-icon">💨</span>
+            <div class="fuel-opt-name">LPG</div>
+            <div class="fuel-opt-price">₹68</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Quantity (Litres)</label>
+        <div class="qty-row">
+          <button class="qty-btn" onclick="changeAppQty(-5)">−</button>
+          <div class="qty-val" id="app-qty">20</div>
+          <button class="qty-btn" onclick="changeAppQty(5)">+</button>
+          <span style="font-size:12px;color:var(--muted);">Litres</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Delivery Schedule</label>
+        <select class="form-select">
+          <option>ASAP — Under 30 minutes</option>
+          <option>Evening — 5:00 PM to 7:00 PM</option>
+          <option>Tomorrow — 8:00 AM to 10:00 AM</option>
+        </select>
+      </div>
+
+      <div class="total-banner">
+        <div>
+          <div class="total-lbl" id="app-summary">Petrol × 20L + ₹29 fee</div>
+        </div>
+        <div class="total-val" id="app-total-price">₹2,059</div>
+      </div>
+
+      <button class="btn-primary" onclick="confirmAppOrder(this)">
+        Confirm & Order Fuel
+      </button>
+    </div>
+  </div>
+
+  <!-- ── FEATURES ── -->
+  <div class="app-section" style="padding-top:0;">
+    <div class="section-label">Category Features</div>
+    <div class="section-title">Built For Mobility</div>
+
+    <div class="features-grid">
+      <div class="feat-card emergency">
+        <div class="feat-icon" style="background:rgba(232,82,10,0.2);">⚡</div>
+        <div class="feat-title">Emergency SOS Mode</div>
+        <div class="feat-desc">Stranded with an empty tank? Priority dispatch arrives under 20 minutes guaranteed.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:#FFF0E8;">📍</div>
+        <div class="feat-title">Live Tracking</div>
+        <div class="feat-desc">Track agent location in real-time.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:#EDF7F1;">🛡️</div>
+        <div class="feat-title">BIS Certified</div>
+        <div class="feat-desc">Verified fire-safe agents.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BOTTOM NAVIGATION ── -->
+  <nav class="bottom-nav">
+    <div class="nav-item active">
+      <i class="fas fa-home"></i>
+      Home
+    </div>
+    <div class="nav-item">
+      <i class="fas fa-gas-pump"></i>
+      Order
+    </div>
+    <div class="nav-item">
+      <i class="fas fa-map-marker-alt"></i>
+      Track
+    </div>
+    <div class="nav-item">
+      <i class="fas fa-history"></i>
+      History
+    </div>
+    <div class="nav-item">
+      <i class="fas fa-user"></i>
+      Profile
+    </div>
+  </nav>
 </div>
 
 <script>
-    // State
-    const state = {
-        user: { name: 'Pawan Teja' },
-        currentScreen: 'splash',
-        history: [],
-        fuelPrices: {
-            'petrol': 102.86,
-            'diesel': 89.62,
-            'premium': 112.50,
-            'cng': 74.50,
-            'ev': 12.00
-        },
-        order: {
-            fuelType: 'petrol',
-            qty: 2
-        }
-    };
+let appQty = 20;
+let appPrice = 101.5;
+let appFuel = 'Petrol';
 
-    // Calculate price logic
-    function updatePriceUI() {
-        const rate = state.fuelPrices[state.order.fuelType];
-        const total = (rate * state.order.qty).toFixed(2);
-        
-        document.getElementById('calc-qty').innerText = state.order.qty;
-        document.getElementById('calc-rate').innerText = rate.toFixed(2);
-        document.getElementById('calc-base').innerText = total;
-        document.getElementById('calc-total').innerText = total;
-        
-        const paymentTotal = document.getElementById('payment-total');
-        if (paymentTotal) paymentTotal.innerText = total;
-    }
+function selectAppFuel(el, name, price) {
+  document.querySelectorAll('.fuel-opt').forEach(o => o.classList.remove('active'));
+  el.classList.add('active');
+  appFuel = name;
+  appPrice = price;
+  calcAppTotal();
+}
 
-    function selectPayment(element) {
-        const options = document.querySelectorAll('.payment-option');
-        options.forEach(o => o.classList.remove('selected'));
-        element.classList.add('selected');
-    }
+function changeAppQty(delta) {
+  appQty = Math.max(5, Math.min(100, appQty + delta));
+  document.getElementById('app-qty').textContent = appQty;
+  calcAppTotal();
+}
 
-    function placeOrder() {
-        navigate('success');
-    }
+function calcAppTotal() {
+  const sub = Math.round(appPrice * appQty * 10) / 10;
+  const total = sub + 29;
+  document.getElementById('app-summary').textContent = appFuel + ' × ' + appQty + 'L + ₹29 fee';
+  document.getElementById('app-total-price').textContent = '₹' + total.toLocaleString('en-IN');
+}
 
-    function toggleDarkMode(e) {
-        if(e.target.checked) {
-            document.body.setAttribute('data-theme', 'dark');
-            // Slight delay to allow transition
-            setTimeout(() => {
-                document.getElementById('app-container').style.backgroundColor = 'var(--bg-color)';
-            }, 50);
-        } else {
-            document.body.removeAttribute('data-theme');
-            setTimeout(() => {
-                document.getElementById('app-container').style.backgroundColor = 'var(--bg-color)';
-            }, 50);
-        }
-    }
+function confirmAppOrder(btn) {
+  btn.textContent = '✓ Dispatching Agent...';
+  btn.style.background = '#2D8A5A';
+  setTimeout(() => {
+    alert('Order Placed Successfully! Your delivery agent is en route.');
+  }, 500);
+}
 
-    function selectFuel(type, element) {
-        state.order.fuelType = type;
-        
-        // UI update
-        const cards = document.querySelectorAll('#order-fuel-grid .fuel-card');
-        cards.forEach(c => c.classList.remove('selected'));
-        element.classList.add('selected');
-        
-        updatePriceUI();
-    }
-
-    function selectVehicle(element) {
-        const cards = document.querySelectorAll('.vehicle-grid .vehicle-card');
-        cards.forEach(c => c.classList.remove('selected'));
-        element.classList.add('selected');
-    }
-
-    function updateQty(change) {
-        let newQty = state.order.qty + change;
-        if (newQty < 1) newQty = 1;
-        if (newQty > 50) newQty = 50;
-        
-        state.order.qty = newQty;
-        document.getElementById('qty-val').innerText = `${newQty} L`;
-        
-        updatePriceUI();
-    }
-
-    // Navigation logic
-    function navigate(screenId, navElement = null) {
-        if(state.currentScreen === screenId) return;
-
-        const currentEl = document.getElementById(state.currentScreen);
-        const nextEl = document.getElementById(screenId);
-        
-        if(!nextEl) return;
-
-        // Push to history
-        if(state.currentScreen !== 'splash') {
-            state.history.push(state.currentScreen);
-        }
-
-        // Animation classes
-        currentEl.classList.remove('active');
-        currentEl.classList.add('prev');
-        
-        nextEl.classList.remove('prev');
-        nextEl.style.transform = ''; // Clear inline transforms from goBack
-        nextEl.classList.add('active');
-
-        state.currentScreen = screenId;
-
-        // Update bottom nav
-        if (navElement) {
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            navElement.classList.add('active');
-        }
-
-        // Show/hide bottom nav
-        const bottomNav = document.getElementById('bottom-nav');
-        const hideNavScreens = ['splash', 'onboarding', 'login', 'register', 'otp', 'forgot-password', 'set-password', 'payment', 'success', 'emergency'];
-        if(hideNavScreens.includes(screenId)) {
-            bottomNav.classList.add('hidden');
-        } else {
-            bottomNav.classList.remove('hidden');
-        }
-    }
-
-    function goBack() {
-        if(state.history.length === 0) return;
-        
-        const prevScreenId = state.history.pop();
-        const currentEl = document.getElementById(state.currentScreen);
-        const prevEl = document.getElementById(prevScreenId);
-
-        currentEl.classList.remove('active');
-        // move current to right
-        currentEl.style.transform = 'translateX(100%)';
-        
-        prevEl.classList.remove('prev');
-        prevEl.classList.add('active');
-
-        state.currentScreen = prevScreenId;
-        
-        // sync bottom nav
-        const navMap = {
-            'home': 0, 'order': 1, 'track': 2, 'history': 3, 'profile': 4
-        };
-        if(navMap[prevScreenId] !== undefined) {
-            const navItems = document.querySelectorAll('.nav-item');
-            navItems.forEach(i => i.classList.remove('active'));
-            navItems[navMap[prevScreenId]].classList.add('active');
-            document.getElementById('bottom-nav').classList.remove('hidden');
-        }
-    }
-
-    // --- Leaflet Maps Logic ---
-    let homeMap, orderMap, trackMap, stationMap, emergencyMap;
-    let currentPos;
-    let mapInitialized = false;
-    const defaultPos = [13.0827, 80.2707]; // Chennai default
-    
-    // Custom Icons
-    const userIcon = L.divIcon({
-        className: 'custom-div-icon',
-        html: `<div style="background-color:#1565D8;width:16px;height:16px;border-radius:50%;border:2px solid white;box-shadow:0 0 10px rgba(21,101,216,0.5);"></div>`,
-        iconSize: [16, 16],
-        iconAnchor: [8, 8]
-    });
-    
-    const stationIcon = L.divIcon({
-        className: 'custom-div-icon',
-        html: `<div style="background-color:#FF6B00;width:20px;height:20px;border-radius:50%;border:2px solid white;box-shadow:0 0 10px rgba(255,107,0,0.5);display:flex;justify-content:center;align-items:center;color:white;font-size:10px;"><i class="fas fa-gas-pump"></i></div>`,
-        iconSize: [20, 20],
-        iconAnchor: [10, 10]
-    });
-
-    const driverIcon = L.divIcon({
-        className: 'custom-div-icon',
-        html: `<div style="background-color:#FF6B00;width:24px;height:24px;border-radius:50%;border:2px solid white;box-shadow:0 0 10px rgba(255,107,0,0.5);display:flex;justify-content:center;align-items:center;color:white;font-size:12px;"><i class="fas fa-truck"></i></div>`,
-        iconSize: [24, 24],
-        iconAnchor: [12, 12]
-    });
-
-    function initLeafletMaps() {
-        if (!window.L) return;
-
-        const tileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
-        const tileAttr = '&copy; OpenStreetMap contributors';
-
-        // Home Map
-        if (document.getElementById('home-map')) {
-            homeMap = L.map('home-map', { zoomControl: false }).setView(defaultPos, 14);
-            L.tileLayer(tileUrl, { attribution: tileAttr }).addTo(homeMap);
-            // Add User Location
-            L.marker(defaultPos, { icon: userIcon, zIndexOffset: 1000 }).addTo(homeMap);
-
-            // Fetch live fuel stations using Overpass API
-            const overpassQuery = `[out:json];node["amenity"="fuel"](around:5000,${defaultPos[0]},${defaultPos[1]});out;`;
-            fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(overpassQuery)}`)
-                .then(res => res.json())
-                .then(data => {
-                    if(data && data.elements && data.elements.length > 0) {
-                        data.elements.slice(0, 15).forEach(station => {
-                            const name = station.tags.name || station.tags.brand || "Fuel Station";
-                            const dist = Math.round(homeMap.distance(defaultPos, [station.lat, station.lon]));
-                            L.marker([station.lat, station.lon], { icon: stationIcon })
-                             .addTo(homeMap)
-                             .bindPopup(`
-                                <div style="text-align:center;">
-                                    <b>${name}</b><br>
-                                    <span style="color:#666; font-size:12px;">${(dist/1000).toFixed(1)} km away</span><br>
-                                    <button onclick="navigate('station-detail', document.querySelectorAll('.nav-item')[0])" style="margin-top:8px; background:var(--orange); color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">Order Now</button>
-                                </div>
-                             `);
-                        });
-                    } else {
-                        // Fallback mock station
-                        L.marker([defaultPos[0] + 0.005, defaultPos[1] + 0.005], {icon: stationIcon}).addTo(homeMap)
-                         .bindPopup("<b>IndianOil Pump</b><br>0.8km away");
-                    }
-                })
-                .catch(e => {
-                    console.log('Overpass API error', e);
-                    // Fallback mock station
-                    L.marker([defaultPos[0] + 0.005, defaultPos[1] + 0.005], {icon: stationIcon}).addTo(homeMap)
-                     .bindPopup("<b>IndianOil Pump</b><br>0.8km away");
-                });
-        }
-        
-        // Order Map
-        if (document.getElementById('order-map')) {
-            orderMap = L.map('order-map', { zoomControl: false }).setView(defaultPos, 15);
-            L.tileLayer(tileUrl, { attribution: tileAttr }).addTo(orderMap);
-            
-            // Reverse Geocoding on drag end (Simulation)
-            orderMap.on('moveend', () => {
-                const center = orderMap.getCenter();
-                fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${center.lat}&lon=${center.lng}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data && data.display_name) {
-                            document.getElementById('order-autocomplete').value = data.display_name.split(',').slice(0, 3).join(',');
-                        }
-                    }).catch(e => console.log('Geocoding error', e));
-            });
-        }
-        
-        // Track Map
-        if (document.getElementById('track-map')) {
-            trackMap = L.map('track-map', { zoomControl: false }).setView(defaultPos, 14);
-            L.tileLayer(tileUrl, { attribution: tileAttr }).addTo(trackMap);
-        }
-        
-        // Station Map
-        if (document.getElementById('station-map')) {
-            stationMap = L.map('station-map', { zoomControl: false, dragging: false, scrollWheelZoom: false }).setView(defaultPos, 15);
-            L.tileLayer(tileUrl, { attribution: tileAttr }).addTo(stationMap);
-            L.marker(defaultPos, {icon: stationIcon}).addTo(stationMap);
-        }
-        
-        // Emergency Map
-        if (document.getElementById('emergency-map')) {
-            emergencyMap = L.map('emergency-map', { zoomControl: false, dragging: false, scrollWheelZoom: false }).setView(defaultPos, 15);
-            L.tileLayer(tileUrl, { attribution: tileAttr }).addTo(emergencyMap);
-        }
-        
-        // Get actual location
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    currentPos = [position.coords.latitude, position.coords.longitude];
-                    
-                    if(homeMap) {
-                        homeMap.setView(currentPos, 14);
-                        L.marker(currentPos, {icon: userIcon}).addTo(homeMap);
-                        L.marker([currentPos[0] + 0.005, currentPos[1] + 0.005], {icon: stationIcon}).addTo(homeMap);
-                    }
-                    if(emergencyMap) {
-                        emergencyMap.setView(currentPos, 15);
-                        L.marker(currentPos, {icon: userIcon}).addTo(emergencyMap);
-                        fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${currentPos[0]}&lon=${currentPos[1]}`)
-                            .then(res => res.json())
-                            .then(data => {
-                                if (data && data.display_name) document.getElementById('emergency-address').value = data.display_name.split(',').slice(0, 3).join(',');
-                            });
-                    }
-                }
-            );
-        }
-        mapInitialized = true;
-    }
-    
-    function centerOrderMapOnGPS() {
-        if(currentPos && orderMap) {
-            orderMap.setView(currentPos, 16);
-            fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${currentPos[0]}&lon=${currentPos[1]}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data && data.display_name) document.getElementById('order-autocomplete').value = data.display_name.split(',').slice(0, 3).join(',');
-                });
-        }
-    }
-    
-    function startDriverSimulation() {
-        if(!trackMap || !window.L) return;
-        
-        const start = currentPos ? [currentPos[0] - 0.02, currentPos[1] - 0.02] : [19.05, 72.85];
-        const end = currentPos || [19.0760, 72.8777];
-        
-        // Generate mock points along a line
-        const routePoints = [];
-        const steps = 20;
-        for(let i=0; i<=steps; i++) {
-            routePoints.push([
-                start[0] + (end[0] - start[0]) * (i/steps),
-                start[1] + (end[1] - start[1]) * (i/steps)
-            ]);
-        }
-        
-        L.polyline(routePoints, {color: '#FF6B00', weight: 4}).addTo(trackMap);
-        L.marker(end, {icon: userIcon}).addTo(trackMap);
-        
-        const driver = L.marker(start, {icon: driverIcon}).addTo(trackMap);
-        
-        let step = 0;
-        const driverAnim = setInterval(() => {
-            if (step < routePoints.length) {
-                driver.setLatLng(routePoints[step]);
-                trackMap.panTo(routePoints[step]);
-                step++;
-            } else {
-                clearInterval(driverAnim);
-            }
-        }, 1000);
-    }
-
-    // Trigger map events on navigation
-    function triggerMapResize(screenId) {
-        setTimeout(() => {
-            if(screenId === 'home' && !mapInitialized) initLeafletMaps();
-            if(screenId === 'track') startDriverSimulation();
-            
-            if(window.L) {
-                if(screenId === 'home' && homeMap) homeMap.invalidateSize();
-                if(screenId === 'order' && orderMap) orderMap.invalidateSize();
-                if(screenId === 'track' && trackMap) trackMap.invalidateSize();
-                if(screenId === 'emergency' && emergencyMap) emergencyMap.invalidateSize();
-                if(screenId === 'station-detail' && stationMap) stationMap.invalidateSize();
-            }
-        }, 300);
-    }
-
-    // Overwrite the existing navigate/goBack with hooks
-    const originalNavigate = navigate;
-    navigate = function(screenId, navElement = null) {
-        originalNavigate(screenId, navElement);
-        triggerMapResize(screenId);
-    };
-
-    const originalGoBack = goBack;
-    goBack = function() {
-        originalGoBack();
-        triggerMapResize(state.currentScreen);
-    };
-
-    // --- Auth & Onboarding Logic ---
-    let currentSlide = 0;
-    function nextOnboardingSlide() {
-        const slider = document.getElementById('onboarding-slider');
-        const dots = document.querySelectorAll('.dot');
-        const nextBtn = document.getElementById('onboarding-next-btn');
-        
-        currentSlide++;
-        if (currentSlide > 2) {
-            completeOnboarding();
-            return;
-        }
-        
-        slider.style.transform = `translateX(-${currentSlide * 33.333}%)`;
-        dots.forEach(d => d.classList.remove('active'));
-        dots[currentSlide].classList.add('active');
-        
-        if (currentSlide === 2) {
-            nextBtn.innerText = "Get Started";
-        }
-    }
-
-    function completeOnboarding() {
-        localStorage.setItem('fuelgo_onboarding_done', 'true');
-        navigate('login');
-    }
-
-    function togglePassword(inputId) {
-        const input = document.getElementById(inputId);
-        if (input.type === "password") {
-            input.type = "text";
-        } else {
-            input.type = "password";
-        }
-    }
-
-    function updatePasswordStrength(val, prefix = 'pw') {
-        const bars = [
-            document.getElementById(`${prefix}-bar-1`),
-            document.getElementById(`${prefix}-bar-2`),
-            document.getElementById(`${prefix}-bar-3`)
-        ];
-        if (!bars[0]) return;
-        
-        bars.forEach(b => b.style.backgroundColor = 'var(--border-color)');
-        if (val.length === 0) return;
-        
-        let strength = 0;
-        if (val.length > 5) strength++;
-        if (val.length > 8 && /[A-Z]/.test(val) && /[0-9]/.test(val)) strength++;
-        if (val.length > 10 && /[^A-Za-z0-9]/.test(val)) strength++;
-        
-        if (strength >= 0) bars[0].style.backgroundColor = '#FF3D3D';
-        if (strength >= 1) {
-            bars[0].style.backgroundColor = '#FFD600';
-            bars[1].style.backgroundColor = '#FFD600';
-        }
-        if (strength >= 2) {
-            bars.forEach(b => b.style.backgroundColor = '#00C853');
-        }
-    }
-
-    function handleLogin() {
-        const phone = document.getElementById('login-phone').value;
-        if(phone.length < 10 && phone.length > 0) {
-            alert('Please enter a valid mobile number.');
-            return;
-        }
-        // Simulate login
-        localStorage.setItem('fuelgo_token', 'mock_token_123');
-        localStorage.setItem('fuelgo_user', JSON.stringify({ name: 'Pawan Teja', phone: phone }));
-        state.user.name = 'Pawan Teja';
-        document.getElementById('splash-user-name').innerText = `Welcome, ${state.user.name}! 👋`;
-        navigate('home', document.querySelectorAll('.nav-item')[0]);
-    }
-
-    function focusNextOtp(input, index) {
-        if (input.value.length === 1 && index < 6) {
-            document.getElementById(`otp${index + 1}`).focus();
-        }
-    }
-
-    let otpTimerInterval;
-    function startOtpTimer() {
-        let timeLeft = 60;
-        document.getElementById('otp-timer-text').style.display = 'inline';
-        document.getElementById('otp-resend-link').style.display = 'none';
-        
-        clearInterval(otpTimerInterval);
-        otpTimerInterval = setInterval(() => {
-            timeLeft--;
-            document.getElementById('otp-timer').innerText = `0:${timeLeft < 10 ? '0' + timeLeft : timeLeft}`;
-            if (timeLeft <= 0) {
-                clearInterval(otpTimerInterval);
-                document.getElementById('otp-timer-text').style.display = 'none';
-                document.getElementById('otp-resend-link').style.display = 'inline';
-            }
-        }, 1000);
-    }
-
-    function handleOtpVerify() {
-        clearInterval(otpTimerInterval);
-        // Simulate successful registration
-        localStorage.setItem('fuelgo_token', 'mock_token_456');
-        localStorage.setItem('fuelgo_user', JSON.stringify({ name: 'New User', phone: '+91 98765 43210' }));
-        state.user.name = 'New User';
-        document.getElementById('splash-user-name').innerText = `Welcome, ${state.user.name}! 👋`;
-        navigate('home', document.querySelectorAll('.nav-item')[0]);
-    }
-
-    function handleForgotPassword() {
-        document.getElementById('reset-success').style.display = 'block';
-        document.getElementById('reset-btn').innerText = "Continue to Reset";
-        document.getElementById('reset-btn').onclick = function() {
-            document.getElementById('reset-success').style.display = 'none';
-            navigate('set-password');
-            this.innerText = "Send Reset Link";
-            this.onclick = handleForgotPassword;
-        };
-    }
-
-    function handleLogout() {
-        localStorage.removeItem('fuelgo_token');
-        localStorage.removeItem('fuelgo_user');
-        navigate('login');
-    }
-
-    // Init App
-    document.addEventListener('DOMContentLoaded', () => {
-        // Clear token on app launch so it asks to login every time
-        localStorage.removeItem('fuelgo_token');
-
-        const storedUser = localStorage.getItem('fuelgo_user');
-        if (storedUser) {
-            try {
-                const userData = JSON.parse(storedUser);
-                if (userData.name) state.user.name = userData.name;
-            } catch(e) {}
-        }
-        
-        document.getElementById('splash-user-name').innerText = `Welcome, ${state.user.name}! 👋`;
-        
-        setTimeout(() => {
-            const token = localStorage.getItem('fuelgo_token'); // Will be null now
-            const onboardingDone = localStorage.getItem('fuelgo_onboarding_done');
-            
-            if (token) {
-                navigate('home', document.querySelectorAll('.nav-item')[0]);
-            } else if (onboardingDone) {
-                navigate('login');
-            } else {
-                navigate('onboarding');
-            }
-        }, 2200);
-    });
+function triggerEmergency() {
+  alert('⚡ Emergency SOS Dispatched! Nearest agent assigned (ETA < 20 mins).');
+}
 </script>
 </body>
 </html>
