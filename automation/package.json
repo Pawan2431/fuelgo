@@ -1,0 +1,36 @@
+{
+  "name": "fuelgo-android-enterprise-automation",
+  "version": "2.0.0",
+  "description": "Enterprise-Grade Android Appium Mobile Automation & CI/CD Reporting Framework",
+  "main": "runners/mainRunner.js",
+  "scripts": {
+    "test": "node runners/mainRunner.js",
+    "test:ci": "node runners/mainRunner.js --ci",
+    "test:mock": "node runners/mainRunner.js --mock",
+    "generate-reports": "node utils/reportGenerator.js"
+  },
+  "keywords": [
+    "appium",
+    "android",
+    "automation",
+    "ci-cd",
+    "github-actions",
+    "github-pages",
+    "excel-report",
+    "html-report",
+    "page-object-model"
+  ],
+  "author": "Antigravity SDET Architect",
+  "license": "ISC",
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "fs-extra": "^11.2.0",
+    "webdriverio": "^8.32.0"
+  },
+  "devDependencies": {
+    "@wdio/cli": "^8.32.0",
+    "@wdio/local-runner": "^8.32.0",
+    "appium": "^2.5.0",
+    "chai": "^4.3.10"
+  }
+}

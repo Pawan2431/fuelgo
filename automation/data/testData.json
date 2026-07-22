@@ -1,0 +1,19 @@
+{
+  "auth": {
+    "validUser": { "email": "john.doe@fuelgo.com", "password": "Password@123", "role": "User" },
+    "invalidUser": { "email": "invalid@fuelgo.com", "password": "WrongPassword" },
+    "adminUser": { "email": "admin@fuelgo.com", "password": "AdminPassword@123", "role": "Admin" }
+  },
+  "registration": {
+    "newUser": { "name": "Jane Smith", "email": "jane.smith@fuelgo.com", "phone": "+1555019283", "pass": "Pass1234!" }
+  },
+  "search": {
+    "queries": ["Shell", "Chevron", "Exxon", "Diesel", "EV Charging"]
+  },
+  "forms": {
+    "validOrder": { "fuelType": "Premium Unleaded", "gallons": 10, "address": "123 Innovation Drive, Silicon Valley, CA" }
+  },
+  "crud": {
+    "stationData": { "name": "Station Express 101", "location": "Sector 4", "price": 3.89 }
+  }
+}
