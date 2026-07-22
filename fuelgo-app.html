@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>FuelGo Mobile Application & Multi-Role Portal</title>
+<title>FuelGo Customer Mobile App</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
@@ -107,9 +107,9 @@ html, body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ── LOGIN SCREEN ── */
+/* ── CUSTOMER LOGIN SCREEN ── */
 .login-container {
-  padding: 30px 24px;
+  padding: 36px 24px;
 }
 
 .login-header {
@@ -134,35 +134,6 @@ html, body {
 .login-sub {
   font-size: 13px;
   color: var(--muted);
-}
-
-/* Role Selector Tabs */
-.role-tabs {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-  background: rgba(0,0,0,0.04);
-  padding: 4px;
-  border-radius: 14px;
-  margin-bottom: 24px;
-}
-
-.role-tab {
-  padding: 10px 4px;
-  text-align: center;
-  font-family: var(--font-head);
-  font-weight: 700;
-  font-size: 12px;
-  border-radius: 10px;
-  cursor: pointer;
-  color: var(--muted);
-  transition: all 0.15s;
-}
-
-.role-tab.active {
-  background: white;
-  color: var(--orange);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
 .form-card {
@@ -367,66 +338,6 @@ html, body {
 
 .summary-price { font-family: var(--font-head); font-weight: 800; font-size: 20px; color: white; }
 
-/* ── DELIVERY AGENT PORTAL SCREEN ── */
-.agent-status-card {
-  background: var(--deep);
-  color: white;
-  padding: 20px;
-  border-radius: 20px;
-  margin-bottom: 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.agent-toggle {
-  background: var(--green);
-  color: white;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-family: var(--font-head);
-  font-weight: 700;
-  font-size: 12px;
-}
-
-.delivery-task-card {
-  background: white;
-  border-radius: 18px;
-  border: 1px solid var(--border);
-  padding: 18px;
-  margin-bottom: 14px;
-}
-
-.task-tag {
-  background: #FFF6F0;
-  color: var(--orange);
-  font-family: var(--font-head);
-  font-size: 10px;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 10px;
-  display: inline-block;
-  margin-bottom: 8px;
-}
-
-/* ── ADMIN PORTAL SCREEN ── */
-.admin-metrics {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-bottom: 16px;
-}
-
-.metric-card {
-  background: white;
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  padding: 14px;
-}
-
-.metric-val { font-family: var(--font-head); font-weight: 800; font-size: 22px; color: var(--deep); }
-.metric-lbl { font-size: 11px; color: var(--muted); }
-
 /* ── BOTTOM NAV (CUSTOMER) ── */
 .bottom-nav {
   position: fixed;
@@ -459,17 +370,6 @@ html, body {
 }
 .tab-item i { font-size: 18px; }
 .tab-item.active { color: var(--orange); }
-
-/* Logout Btn */
-.btn-logout {
-  background: rgba(255,255,255,0.15);
-  border: none;
-  color: white;
-  padding: 4px 10px;
-  border-radius: 10px;
-  font-size: 11px;
-  cursor: pointer;
-}
 </style>
 </head>
 <body>
@@ -491,38 +391,25 @@ html, body {
     </div>
   </header>
 
-  <!-- ── 1. MULTI-ROLE LOGIN SCREEN ── -->
+  <!-- ── 1. CUSTOMER LOGIN SCREEN ── -->
   <div id="screen-login" class="screen active">
     <div class="login-container">
       <div class="login-header">
         <img src="FuelGo.png" alt="FuelGo Logo" class="login-logo-img">
         <div class="login-title">Sign in to FuelGo</div>
-        <div class="login-sub">Select your account role to continue</div>
-      </div>
-
-      <!-- ROLE SELECTOR TABS -->
-      <div class="role-tabs">
-        <div class="role-tab active" onclick="switchLoginRole('customer')">
-          <i class="fas fa-user"></i> Customer
-        </div>
-        <div class="role-tab" onclick="switchLoginRole('agent')">
-          <i class="fas fa-motorcycle"></i> Agent
-        </div>
-        <div class="role-tab" onclick="switchLoginRole('admin')">
-          <i class="fas fa-user-shield"></i> Admin
-        </div>
+        <div class="login-sub">Customer Mobile Account Login</div>
       </div>
 
       <!-- DEMO CREDENTIALS HINT -->
-      <div class="demo-creds" id="demo-creds-hint">
-        <strong>Customer Demo:</strong> Mobile <code>9876543210</code> · Password <code>password123</code>
+      <div class="demo-creds">
+        <strong>Customer Login:</strong> Mobile <code>9876543210</code> · Password <code>password123</code>
       </div>
 
       <div class="form-card">
         <div class="field-group">
-          <label class="field-label" id="username-lbl">Mobile Number / Email</label>
+          <label class="field-label">Mobile Number / Email</label>
           <div class="input-wrapper">
-            <i class="fas fa-mobile-alt input-icon" id="username-icon"></i>
+            <i class="fas fa-mobile-alt input-icon"></i>
             <input type="text" class="input-box" id="login-username" value="9876543210">
           </div>
         </div>
@@ -536,7 +423,7 @@ html, body {
           </div>
         </div>
 
-        <button class="btn-login" onclick="executeRoleLogin()">
+        <button class="btn-login" onclick="executeCustomerLogin()">
           Sign In Now
         </button>
       </div>
@@ -550,7 +437,7 @@ html, body {
       <div class="home-banner">
         <div class="user-greeting">
           <div>
-            <div class="greeting-text">Customer Portal</div>
+            <div class="greeting-text">Welcome Back</div>
             <div class="greeting-name">Pawan Teja</div>
           </div>
           <div class="location-pill">📍 Anna Nagar, Chennai</div>
@@ -567,7 +454,7 @@ html, body {
 
       <div class="section-padding">
         <div class="sec-title">Quick Fuel Dispatch</div>
-        <div class="order-card">
+        <div class="form-card">
           <div class="field-group">
             <label class="field-label">Delivery Address</label>
             <input type="text" class="input-box" style="padding-left:14px;" value="Anna Nagar, Chennai — 600040">
@@ -614,7 +501,7 @@ html, body {
             <div class="summary-price" id="cust-total-val">₹2,059</div>
           </div>
 
-          <button class="btn-app-primary" style="width:100%;padding:14px;border-radius:12px;border:none;background:var(--orange);color:white;font-family:var(--font-head);font-weight:700;" onclick="confirmCustomerOrder()">
+          <button class="btn-login" style="width:100%;" onclick="confirmCustomerOrder()">
             Confirm Order Now
           </button>
         </div>
@@ -626,118 +513,15 @@ html, body {
       <div class="tab-item active"><i class="fas fa-home"></i>Home</div>
       <div class="tab-item" onclick="alert('Navigating to Live GPS Tracking...')"><i class="fas fa-map-marker-alt"></i>Track</div>
       <div class="tab-item" onclick="alert('Viewing Past Orders...')"><i class="fas fa-history"></i>History</div>
-      <div class="tab-item" onclick="logoutCurrentRole()"><i class="fas fa-sign-out-alt"></i>Logout</div>
+      <div class="tab-item" onclick="logoutCustomer()"><i class="fas fa-sign-out-alt"></i>Logout</div>
     </nav>
-  </div>
-
-  <!-- ── 3. DELIVERY AGENT PORTAL SCREEN ── -->
-  <div id="screen-agent" class="screen">
-    <div class="section-padding">
-      <div class="agent-status-card">
-        <div>
-          <div style="font-family:var(--font-head);font-weight:800;font-size:18px;">Ravi Kumar</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.6);">Agent ID: AGENT402 · Active</div>
-        </div>
-        <div class="agent-toggle">● ONLINE</div>
-      </div>
-
-      <div class="sec-title">Assigned Deliveries (1 Active)</div>
-
-      <div class="delivery-task-card">
-        <div class="task-tag">PRIORITY DISPATCH</div>
-        <div style="font-family:var(--font-head);font-weight:700;font-size:16px;margin-bottom:4px;">Order #FG-8821</div>
-        <div style="font-size:13px;color:var(--deep);margin-bottom:8px;">Customer: Pawan Teja · Petrol (20L)</div>
-        <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">📍 Anna Nagar, Chennai — 600040 (2.4 km away)</div>
-
-        <button class="btn-login" style="margin-bottom:8px;background:var(--green);" onclick="updateAgentTask('Arrived at Location')">
-          Mark Arrived at Customer Location
-        </button>
-        <button class="btn-login" style="background:var(--deep);" onclick="updateAgentTask('Fuel Dispensed & Order Complete')">
-          Complete Delivery & Generate Receipt
-        </button>
-      </div>
-
-      <button class="btn-login" style="background:var(--muted);margin-top:20px;" onclick="logoutCurrentRole()">
-        Sign Out Agent Session
-      </button>
-    </div>
-  </div>
-
-  <!-- ── 4. ADMIN PORTAL SCREEN ── -->
-  <div id="screen-admin" class="screen">
-    <div class="section-padding">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-        <div class="sec-title" style="margin:0;">Admin Operations Dashboard</div>
-        <button class="btn-logout" onclick="logoutCurrentRole()">Logout</button>
-      </div>
-
-      <div class="admin-metrics">
-        <div class="metric-card">
-          <div class="metric-val">100 / 100</div>
-          <div class="metric-lbl">Security Audit Score</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-val">0.00%</div>
-          <div class="metric-lbl">API Load Error Rate</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-val">50,240</div>
-          <div class="metric-lbl">Total Deliveries</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-val">142</div>
-          <div class="metric-lbl">Active Agents Online</div>
-        </div>
-      </div>
-
-      <div class="form-card" style="margin-bottom:16px;">
-        <div style="font-family:var(--font-head);font-weight:700;font-size:15px;margin-bottom:10px;">System Health & Infrastructure</div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.6;">
-          • Express.js DAST Server: Active on localhost:3000<br>
-          • Database: SQLite WAL High-Concurrency Mode<br>
-          • Test Coverage: 410 Executed Security & Functional Cases
-        </div>
-      </div>
-    </div>
   </div>
 </div>
 
 <script>
-let currentRole = 'customer';
 let custQty = 20;
 let custPrice = 101.5;
 let custFuel = 'Petrol';
-
-function switchLoginRole(role) {
-  currentRole = role;
-  document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
-
-  const tabs = document.querySelectorAll('.role-tab');
-  const userField = document.getElementById('login-username');
-  const passField = document.getElementById('login-password');
-  const userLbl = document.getElementById('username-lbl');
-  const hintBox = document.getElementById('demo-creds-hint');
-
-  if (role === 'customer') {
-    tabs[0].classList.add('active');
-    userLbl.textContent = 'Mobile Number / Email';
-    userField.value = '9876543210';
-    passField.value = 'password123';
-    hintBox.innerHTML = '<strong>Customer Demo:</strong> Mobile <code>9876543210</code> · Password <code>password123</code>';
-  } else if (role === 'agent') {
-    tabs[1].classList.add('active');
-    userLbl.textContent = 'Delivery Agent ID / Mobile';
-    userField.value = 'AGENT402';
-    passField.value = 'agent123';
-    hintBox.innerHTML = '<strong>Agent Demo:</strong> Agent ID <code>AGENT402</code> · Password <code>agent123</code>';
-  } else if (role === 'admin') {
-    tabs[2].classList.add('active');
-    userLbl.textContent = 'Admin Username / Email';
-    userField.value = 'admin@fuelgo.in';
-    passField.value = 'admin123';
-    hintBox.innerHTML = '<strong>Admin Demo:</strong> Email <code>admin@fuelgo.in</code> · Password <code>admin123</code>';
-  }
-}
 
 function togglePasswordVisibility() {
   const input = document.getElementById('login-password');
@@ -751,7 +535,7 @@ function togglePasswordVisibility() {
   }
 }
 
-function executeRoleLogin() {
+function executeCustomerLogin() {
   const pwd = document.getElementById('login-password').value;
   if (!pwd) {
     alert('Please enter your password to log in.');
@@ -759,32 +543,20 @@ function executeRoleLogin() {
   }
 
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-
-  if (currentRole === 'customer') {
-    document.getElementById('screen-customer').classList.add('active');
-    document.getElementById('current-role-badge').textContent = '👤 Customer';
-  } else if (currentRole === 'agent') {
-    document.getElementById('screen-agent').classList.add('active');
-    document.getElementById('current-role-badge').textContent = '🛵 Agent #402';
-  } else if (currentRole === 'admin') {
-    document.getElementById('screen-admin').classList.add('active');
-    document.getElementById('current-role-badge').textContent = '🛡️ Admin Portal';
-  }
-
-  // Show top back arrow when inside an active session
+  document.getElementById('screen-customer').classList.add('active');
+  document.getElementById('current-role-badge').textContent = '👤 Customer Account';
   document.getElementById('app-back-btn').style.display = 'inline-flex';
 }
 
-function logoutCurrentRole() {
+function logoutCustomer() {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-login').classList.add('active');
   document.getElementById('current-role-badge').textContent = 'Login Required';
-  // Hide top back arrow on login screen
   document.getElementById('app-back-btn').style.display = 'none';
 }
 
 function handleTopBackNavigation() {
-  logoutCurrentRole();
+  logoutCustomer();
 }
 
 function chooseFuel(el, fuel, price) {
@@ -810,10 +582,6 @@ function updateCustCalc() {
 
 function confirmCustomerOrder() {
   alert('Order Placed Successfully! Your delivery agent is en route.');
-}
-
-function updateAgentTask(status) {
-  alert('Status Updated: ' + status);
 }
 </script>
 </body>
