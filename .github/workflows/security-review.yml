@@ -60,9 +60,13 @@ jobs:
           sleep 4
 
       - name: Run Baseline Load Test (100 VUs / 60s)
+        env:
+          VUS: 100
+          DURATION: 60
+          TARGET_URL: http://localhost:3000/api/prices
         run: |
           cd fuelgo-backend
-          npx autocannon -c 100 -d 60 http://localhost:3000/api/prices
+          node load-test.js
 
       - name: Generate Audit Reports & Excel Workbooks
         run: |

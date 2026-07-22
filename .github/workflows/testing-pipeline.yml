@@ -37,14 +37,14 @@ jobs:
           npm start &
           sleep 3
 
-      - name: Run Autocannon / Node Load Test (100 VUs / 60s)
+      - name: Run Baseline Load Test (100 VUs / 60s)
+        env:
+          VUS: 100
+          DURATION: 60
+          TARGET_URL: http://localhost:3000/api/prices
         run: |
           cd fuelgo-backend
-          if [ -f load-test.js ]; then
-            node load-test.js
-          else
-            npx autocannon -c 100 -d 60 http://localhost:3000/api/prices
-          fi
+          node load-test.js
 
   # ====================================================
   # JOB 2: Selenium Web E2E Testing & Excel Report
