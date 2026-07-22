@@ -44,10 +44,10 @@ curl -X POST http://localhost:3000/api/auth/register \
 *(Copy the "token" from the response for the next steps!)*
 
 **4. Place a fuel order (Requires Login):**
-Replace `YOUR_TOKEN_HERE` with the token you got from the registration or login.
+Replace `<AUTH_TOKEN>` with the token you got from registration or login.
 ```bash
 curl -X POST http://localhost:3000/api/orders \
--H "Authorization: Bearer YOUR_TOKEN_HERE" \
+-H "Authorization: Bearer <AUTH_TOKEN>" \
 -H "Content-Type: application/json" \
 -d "{\"station_id\":1,\"fuel_type\":\"petrol\",\"quantity_litres\":20,\"payment_method\":\"GPay\"}"
 ```
@@ -55,7 +55,7 @@ curl -X POST http://localhost:3000/api/orders \
 **5. View your past orders (Requires Login):**
 ```bash
 curl http://localhost:3000/api/orders \
--H "Authorization: Bearer YOUR_TOKEN_HERE"
+-H "Authorization: Bearer <AUTH_TOKEN>"
 ```
 
 ---
