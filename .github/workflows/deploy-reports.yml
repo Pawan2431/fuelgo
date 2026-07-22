@@ -11,6 +11,9 @@ permissions:
   pages: write
   id-token: write
 
+env:
+  ACTIONS_ALLOW_USE_UNSECURE_NODE20: true
+
 jobs:
   deploy-pages-manual:
     name: Deploy Reports to GitHub Pages
@@ -24,14 +27,25 @@ jobs:
 
       - name: "Setup Pages"
         uses: actions/configure-pages@v5
+        continue-on-error: true
         with:
           enablement: true
 
       - name: "Upload Pages Artifact"
         uses: actions/upload-pages-artifact@v3
+        continue-on-error: true
         with:
           path: 'automation/reports/HTML'
 
       - name: "Deploy to GitHub Pages"
         id: deployment
         uses: actions/deploy-pages@v4
+        continue-on-error: true
+
+      - name: "Upload Automation Reports Build Artifact (Fallback)"
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Automation-HTML-Reports-Package
+          path: automation/reports/HTML
+          retention-days: 30

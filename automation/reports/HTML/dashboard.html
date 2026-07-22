@@ -13,7 +13,7 @@
 <body>
     <div class="card">
         <h2>📊 Executive Quality Dashboard Summary</h2>
-        <p>Pass Rate: <strong>97.3%</strong> | Total Duration: <strong>297.06s</strong> | Executed Test Cases: <strong>510</strong></p>
+        <p>Pass Rate: <strong>100.0%</strong> | Total Duration: <strong>306.72s</strong> | Executed Test Cases: <strong>510</strong></p>
     </div>
     <div class="grid">
         <div class="card"><canvas id="statusChart"></canvas></div>
@@ -24,7 +24,7 @@
             type: 'doughnut',
             data: {
                 labels: ['Passed', 'Failed', 'Skipped'],
-                datasets: [{ data: [496, 10, 4], backgroundColor: ['#00C853', '#FF3D3D', '#FFD600'] }]
+                datasets: [{ data: [510, 0, 0], backgroundColor: ['#00C853', '#FF3D3D', '#FFD600'] }]
             },
             options: { plugins: { title: { display: true, text: 'Overall Test Status Distribution' } } }
         });

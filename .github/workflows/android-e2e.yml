@@ -18,6 +18,9 @@ concurrency:
   group: "pages"
   cancel-in-progress: false
 
+env:
+  ACTIONS_ALLOW_USE_UNSECURE_NODE20: true
+
 jobs:
   android-e2e-pipeline:
     name: Android Appium 400+ E2E & GitHub Pages Deployment
@@ -108,12 +111,14 @@ jobs:
       - name: "Configure Pages"
         if: always()
         uses: actions/configure-pages@v5
+        continue-on-error: true
         with:
           enablement: true
 
       - name: "Upload Pages Artifact"
         if: always()
         uses: actions/upload-pages-artifact@v3
+        continue-on-error: true
         with:
           path: 'public'
 
@@ -121,6 +126,7 @@ jobs:
         if: always()
         id: deployment
         uses: actions/deploy-pages@v4
+        continue-on-error: true
 
       - name: "Stage 21: Publish GitHub Action Summary"
         if: always()

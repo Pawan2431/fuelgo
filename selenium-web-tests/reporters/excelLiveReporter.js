@@ -103,27 +103,41 @@ class ExcelLiveReporter {
     ];
     failed.forEach((t, i) => s6.addRow({ id: `BUG-WEB-${i + 101}`, module: t.module, error: t.error }));
 
+    const safeWrite = async (wb, filePath) => {
+      try {
+        await wb.xlsx.writeFile(filePath);
+      } catch (err) {
+        if (err.code === 'EBUSY') {
+          const fallbackPath = filePath.replace('.xlsx', `_${Date.now()}.xlsx`);
+          console.warn(`⚠️ File locked ${path.basename(filePath)}. Writing to ${path.basename(fallbackPath)}`);
+          await wb.xlsx.writeFile(fallbackPath);
+        } else {
+          throw err;
+        }
+      }
+    };
+
     // Write files to output directories
     for (const dir of this.outputDirs) {
-      await masterWb.xlsx.writeFile(path.join(dir, 'Automation_Test_Report.xlsx'));
+      await safeWrite(masterWb, path.join(dir, 'Automation_Test_Report.xlsx'));
 
       const pWb = new ExcelJS.Workbook();
       const pWs = pWb.addWorksheet('Passed Tests');
       pWs.columns = s1.columns;
       passed.forEach(t => pWs.addRow(t));
-      await pWb.xlsx.writeFile(path.join(dir, 'Passed_Test_Cases.xlsx'));
+      await safeWrite(pWb, path.join(dir, 'Passed_Test_Cases.xlsx'));
 
       const fWb = new ExcelJS.Workbook();
       const fWs = fWb.addWorksheet('Failed Tests');
       fWs.columns = s3.columns;
       failed.forEach(t => fWs.addRow(t));
-      await fWb.xlsx.writeFile(path.join(dir, 'Failed_Test_Cases.xlsx'));
+      await safeWrite(fWb, path.join(dir, 'Failed_Test_Cases.xlsx'));
 
       const sumWb = new ExcelJS.Workbook();
       const sumWs = sumWb.addWorksheet('Summary Report');
       sumWs.columns = s5.columns;
       testResults.slice(0, 10).forEach(t => sumWs.addRow(t));
-      await sumWb.xlsx.writeFile(path.join(dir, 'Summary_Report.xlsx'));
+      await safeWrite(sumWb, path.join(dir, 'Summary_Report.xlsx'));
     }
 
     console.log(`✅ Live Selenium Excel Reports generated successfully in Test Results/Excel!`);
