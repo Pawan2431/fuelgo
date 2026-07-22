@@ -18,6 +18,7 @@ concurrency:
 
 env:
   ACTIONS_ALLOW_USE_UNSECURE_NODE20: true
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: true
 
 jobs:
   build-and-deploy:
@@ -52,22 +53,11 @@ jobs:
         run: |
           echo "Running static checks on Web application assets..."
 
-      - name: "Stage 5a: Configure GitHub Pages"
-        uses: actions/configure-pages@v5
-        continue-on-error: true
+      - name: "Stage 5: Deploy Application Assets to GitHub Pages (gh-pages Branch)"
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          enablement: true
-
-      - name: "Stage 5b: Upload Pages Artifact"
-        uses: actions/upload-pages-artifact@v3
-        continue-on-error: true
-        with:
-          path: 'public'
-
-      - name: "Stage 5c: Deploy Artifact to GitHub Pages"
-        id: deployment
-        uses: actions/deploy-pages@v4
-        continue-on-error: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: 'public'
 
   live-selenium-testing:
     name: Live Selenium E2E Testing & Excel Reporting

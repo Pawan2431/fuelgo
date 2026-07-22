@@ -13,36 +13,23 @@ permissions:
 
 env:
   ACTIONS_ALLOW_USE_UNSECURE_NODE20: true
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: true
 
 jobs:
   deploy-pages-manual:
     name: Deploy Reports to GitHub Pages
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: "Checkout Code"
         uses: actions/checkout@v4
 
-      - name: "Setup Pages"
-        uses: actions/configure-pages@v5
-        continue-on-error: true
+      - name: "Deploy Reports to GitHub Pages (gh-pages Branch)"
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          enablement: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: 'automation/reports/HTML'
 
-      - name: "Upload Pages Artifact"
-        uses: actions/upload-pages-artifact@v3
-        continue-on-error: true
-        with:
-          path: 'automation/reports/HTML'
-
-      - name: "Deploy to GitHub Pages"
-        id: deployment
-        uses: actions/deploy-pages@v4
-        continue-on-error: true
-
-      - name: "Upload Automation Reports Build Artifact (Fallback)"
+      - name: "Upload Automation Reports Build Artifact"
         if: always()
         uses: actions/upload-artifact@v4
         with:

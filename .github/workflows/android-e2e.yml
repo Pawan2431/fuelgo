@@ -20,6 +20,7 @@ concurrency:
 
 env:
   ACTIONS_ALLOW_USE_UNSECURE_NODE20: true
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: true
 
 jobs:
   android-e2e-pipeline:
@@ -108,25 +109,12 @@ jobs:
           cp -r automation/logs public/reports/latest/
           cp -r public/reports/latest/* public/reports/history/build-${{ github.run_number }}/
 
-      - name: "Configure Pages"
+      - name: "Deploy Reports to GitHub Pages (gh-pages Branch)"
         if: always()
-        uses: actions/configure-pages@v5
-        continue-on-error: true
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          enablement: true
-
-      - name: "Upload Pages Artifact"
-        if: always()
-        uses: actions/upload-pages-artifact@v3
-        continue-on-error: true
-        with:
-          path: 'public'
-
-      - name: "Deploy Artifact to GitHub Pages"
-        if: always()
-        id: deployment
-        uses: actions/deploy-pages@v4
-        continue-on-error: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: 'public'
 
       - name: "Stage 21: Publish GitHub Action Summary"
         if: always()
