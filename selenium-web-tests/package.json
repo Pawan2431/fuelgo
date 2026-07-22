@@ -21,6 +21,7 @@
   "license": "ISC",
   "dependencies": {
     "exceljs": "^4.4.0",
+    "fs-extra": "^11.3.6",
     "selenium-webdriver": "^4.27.0"
   }
 }
