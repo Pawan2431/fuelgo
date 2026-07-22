@@ -98,12 +98,12 @@ html, body {
   font-weight: 700;
 }
 
-/* ── SCREENS ── */
-.screen {
+/* ── SCREENS & SUB-SCREENS ── */
+.screen, .cust-sub-screen {
   display: none;
   animation: fadeIn 0.25s ease-out forwards;
 }
-.screen.active {
+.screen.active, .cust-sub-screen.active {
   display: block;
 }
 
@@ -163,7 +163,6 @@ html, body {
   color: var(--deep);
   outline: none;
 }
-.input-box:focus, .select-box:focus { border-color: var(--orange); }
 
 .toggle-pwd { position: absolute; right: 14px; color: var(--muted); cursor: pointer; font-size: 14px; }
 
@@ -176,7 +175,6 @@ html, body {
   color: var(--orange);
   margin-bottom: 16px;
 }
-.demo-creds strong { font-family: var(--font-head); }
 
 .btn-login {
   width: 100%;
@@ -194,7 +192,7 @@ html, body {
 .btn-login:hover { background: var(--orange2); }
 .btn-login:active { transform: scale(0.98); }
 
-/* ── HOME SCREEN ── */
+/* ── HOME & SUB SCREENS ── */
 .home-banner {
   background: var(--deep);
   color: white;
@@ -250,8 +248,8 @@ html, body {
 .section-padding { padding: 20px; }
 .sec-title { font-family: var(--font-head); font-weight: 800; font-size: 18px; color: var(--deep); margin-bottom: 12px; }
 
-/* ── LEAFLET MAP CONTAINER ── */
-#app-map {
+/* ── LEAFLET MAP CONTAINERS ── */
+#app-map, #track-map {
   width: 100%;
   height: 240px;
   border-radius: 18px;
@@ -354,7 +352,102 @@ html, body {
 
 .summary-price { font-family: var(--font-head); font-weight: 800; font-size: 20px; color: white; }
 
-/* ── CONFIRMATION MODAL OVERLAY ── */
+/* ── TRACKING COMPONENTS ── */
+.timeline-card {
+  background: white;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  padding: 18px;
+  margin-bottom: 16px;
+}
+
+.timeline-step {
+  display: flex;
+  gap: 14px;
+  position: relative;
+  padding-bottom: 16px;
+}
+.timeline-step:last-child { padding-bottom: 0; }
+
+.timeline-step::before {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 24px;
+  bottom: 0;
+  width: 2px;
+  background: var(--border);
+}
+.timeline-step:last-child::before { display: none; }
+
+.step-icon {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: #E0E0E0;
+  color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  z-index: 2;
+}
+
+.timeline-step.done .step-icon { background: var(--green); }
+.timeline-step.active .step-icon { background: var(--orange); }
+
+.step-title { font-family: var(--font-head); font-weight: 700; font-size: 13px; color: var(--deep); }
+.step-desc { font-size: 11px; color: var(--muted); }
+
+.driver-card {
+  background: white;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.driver-avatar {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: var(--orange);
+  color: white;
+  font-family: var(--font-head);
+  font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+
+.driver-name { font-family: var(--font-head); font-weight: 700; font-size: 15px; }
+.driver-sub { font-size: 11px; color: var(--muted); }
+
+/* ── HISTORY COMPONENTS ── */
+.history-card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  padding: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hist-left { display: flex; align-items: center; gap: 12px; }
+.hist-icon-box {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  background: #FFF6F0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+
+.hist-fuel { font-family: var(--font-head); font-weight: 700; font-size: 14px; }
+.hist-meta { font-size: 11px; color: var(--muted); }
+.hist-price { font-family: var(--font-head); font-weight: 800; font-size: 15px; color: var(--deep); text-align: right; }
+.hist-status { font-size: 10px; color: var(--green); font-weight: 700; }
+
+/* ── CONFIRMATION MODAL ── */
 .confirm-modal-overlay {
   display: none;
   position: fixed;
@@ -416,6 +509,7 @@ html, body {
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
+  transition: color 0.15s;
 }
 .tab-item i { font-size: 18px; }
 .tab-item.active { color: var(--orange); }
@@ -449,7 +543,6 @@ html, body {
         <div class="login-sub">Customer Mobile Account Login</div>
       </div>
 
-      <!-- DEMO CREDENTIALS HINT -->
       <div class="demo-creds">
         <strong>Customer Login:</strong> Mobile <code>9876543210</code> · Password <code>password123</code>
       </div>
@@ -481,8 +574,9 @@ html, body {
 
   <!-- ── 2. CUSTOMER MOBILE APP SCREEN ── -->
   <div id="screen-customer" class="screen">
-    <!-- SUB-SCREEN: HOME -->
-    <div id="cust-sub-home">
+    
+    <!-- ── TAB 1: HOME SUB-SCREEN ── -->
+    <div id="cust-sub-home" class="cust-sub-screen active">
       <div class="home-banner">
         <div class="user-greeting">
           <div>
@@ -502,7 +596,6 @@ html, body {
       </div>
 
       <div class="section-padding">
-        <!-- EXACT MAP CONTAINER -->
         <div class="sec-title">Exact Map & Nearby Stations</div>
         <div id="app-map"></div>
 
@@ -588,16 +681,136 @@ html, body {
       </div>
     </div>
 
+    <!-- ── TAB 2: LIVE GPS TRACKING SUB-SCREEN ── -->
+    <div id="cust-sub-track" class="cust-sub-screen">
+      <div class="section-padding">
+        <div class="sec-title">Live GPS Delivery Tracking</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">📍 Chetipedu, Tamil Nadu — 602105</div>
+
+        <div id="track-map"></div>
+
+        <div class="driver-card">
+          <div class="driver-avatar">RK</div>
+          <div style="flex:1;">
+            <div class="driver-name">Ravi Kumar (Agent #402)</div>
+            <div class="driver-sub">Vehicle: TN-01-FG-8821 · BIS Certified Agent</div>
+          </div>
+          <button class="btn-login" style="width:auto;padding:8px 14px;background:var(--green);font-size:12px;" onclick="alert('Calling Agent Ravi Kumar...')">
+            <i class="fas fa-phone-alt"></i> Call
+          </button>
+        </div>
+
+        <div class="timeline-card">
+          <div style="font-family:var(--font-head);font-weight:700;font-size:14px;margin-bottom:14px;">Delivery Progress:</div>
+          
+          <div class="timeline-step done">
+            <div class="step-icon">✓</div>
+            <div>
+              <div class="step-title">Order Placed & Confirmed</div>
+              <div class="step-desc">10:15 AM · Indian Oil Station Chetipedu</div>
+            </div>
+          </div>
+
+          <div class="timeline-step active">
+            <div class="step-icon">🚚</div>
+            <div>
+              <div class="step-title">Delivery Agent En Route</div>
+              <div class="step-desc">10:18 AM · 0.8 km away from Chetipedu</div>
+            </div>
+          </div>
+
+          <div class="timeline-step">
+            <div class="step-icon">⛽</div>
+            <div>
+              <div class="step-title">Arriving & Fuel Dispensing</div>
+              <div class="step-desc">Estimated: 10:27 AM</div>
+            </div>
+          </div>
+
+          <div class="timeline-step">
+            <div class="step-icon">🏁</div>
+            <div>
+              <div class="step-title">Order Complete & Receipt</div>
+              <div class="step-desc">Pending completion</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB 3: PAST ORDERS HISTORY SUB-SCREEN ── -->
+    <div id="cust-sub-history" class="cust-sub-screen">
+      <div class="section-padding">
+        <div class="sec-title">Past Chetipedu Fuel Orders</div>
+
+        <div class="history-card">
+          <div class="hist-left">
+            <div class="hist-icon-box">⛽</div>
+            <div>
+              <div class="hist-fuel">Petrol · 20 Litres</div>
+              <div class="hist-meta">Today, 10:15 AM · Chetipedu Main Rd</div>
+            </div>
+          </div>
+          <div>
+            <div class="hist-price">₹2,059</div>
+            <div class="hist-status">✓ Delivered</div>
+          </div>
+        </div>
+
+        <div class="history-card">
+          <div class="hist-left">
+            <div class="hist-icon-box">🛢️</div>
+            <div>
+              <div class="hist-fuel">Diesel · 30 Litres</div>
+              <div class="hist-meta">Yesterday, 4:20 PM · BPCL Sriperumbudur</div>
+            </div>
+          </div>
+          <div>
+            <div class="hist-price">₹2,705</div>
+            <div class="hist-status">✓ Delivered</div>
+          </div>
+        </div>
+
+        <div class="history-card">
+          <div class="hist-left">
+            <div class="hist-icon-box">✨</div>
+            <div>
+              <div class="hist-fuel">Premium Petrol · 15 Litres</div>
+              <div class="hist-meta">20 Jul 2026 · HP Station Chetipedu</div>
+            </div>
+          </div>
+          <div>
+            <div class="hist-price">₹1,709</div>
+            <div class="hist-status">✓ Delivered</div>
+          </div>
+        </div>
+
+        <div class="history-card">
+          <div class="hist-left">
+            <div class="hist-icon-box">💨</div>
+            <div>
+              <div class="hist-fuel">LPG · 2 Cylinders</div>
+              <div class="hist-meta">15 Jul 2026 · Chetipedu Residence</div>
+            </div>
+          </div>
+          <div>
+            <div class="hist-price">₹1,389</div>
+            <div class="hist-status">✓ Delivered</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- BOTTOM TAB NAV -->
     <nav class="bottom-nav">
-      <div class="tab-item active"><i class="fas fa-home"></i>Home</div>
-      <div class="tab-item" onclick="alert('Navigating to Chetipedu GPS Map...')"><i class="fas fa-map-marker-alt"></i>Track</div>
-      <div class="tab-item" onclick="alert('Viewing Past Chetipedu Orders...')"><i class="fas fa-history"></i>History</div>
+      <div class="tab-item active" onclick="switchCustTab('home')"><i class="fas fa-home"></i>Home</div>
+      <div class="tab-item" onclick="switchCustTab('track')"><i class="fas fa-map-marker-alt"></i>Track</div>
+      <div class="tab-item" onclick="switchCustTab('history')"><i class="fas fa-history"></i>History</div>
       <div class="tab-item" onclick="logoutCustomer()"><i class="fas fa-sign-out-alt"></i>Logout</div>
     </nav>
   </div>
 
-  <!-- ── ADJUSTED CONFIRM ORDER MODAL ── -->
+  <!-- ── CONFIRM ORDER MODAL ── -->
   <div id="confirmModal" class="confirm-modal-overlay">
     <div class="confirm-card">
       <div class="confirm-title">Confirm Fuel Order</div>
@@ -638,8 +851,10 @@ let custQty = 20;
 let custPrice = 101.5;
 let custFuel = 'Petrol';
 let selectedStationName = 'Indian Oil Chetipedu (0.8 km)';
-let mapInitialized = false;
-let leafletMap = null;
+let homeMapInit = false;
+let trackMapInit = false;
+let homeMapObj = null;
+let trackMapObj = null;
 
 function togglePasswordVisibility() {
   const input = document.getElementById('login-password');
@@ -665,10 +880,7 @@ function executeCustomerLogin() {
   document.getElementById('current-role-badge').textContent = '👤 Chetipedu Customer';
   document.getElementById('app-back-btn').style.display = 'inline-flex';
 
-  if (!mapInitialized) {
-    setTimeout(initChetipeduMap, 300);
-    mapInitialized = true;
-  }
+  switchCustTab('home');
 }
 
 function logoutCustomer() {
@@ -680,6 +892,32 @@ function logoutCustomer() {
 
 function handleTopBackNavigation() {
   logoutCustomer();
+}
+
+function switchCustTab(tabName) {
+  document.querySelectorAll('.cust-sub-screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+
+  const tabs = document.querySelectorAll('.tab-item');
+
+  if (tabName === 'home') {
+    document.getElementById('cust-sub-home').classList.add('active');
+    tabs[0].classList.add('active');
+    if (!homeMapInit) {
+      setTimeout(initHomeMap, 300);
+      homeMapInit = true;
+    }
+  } else if (tabName === 'track') {
+    document.getElementById('cust-sub-track').classList.add('active');
+    tabs[1].classList.add('active');
+    if (!trackMapInit) {
+      setTimeout(initTrackMap, 300);
+      trackMapInit = true;
+    }
+  } else if (tabName === 'history') {
+    document.getElementById('cust-sub-history').classList.add('active');
+    tabs[2].classList.add('active');
+  }
 }
 
 function selectStation(el, name, dist) {
@@ -727,35 +965,44 @@ function closeConfirmModal() {
 
 function confirmAndTrackOrder() {
   closeConfirmModal();
-  alert('⚡ Order Confirmed! Dispatching from ' + selectedStationName + ' to Chetipedu (ETA: 12 mins).');
+  switchCustTab('track');
 }
 
-/* ── LEAFLET CHETIPEDU MAP INIT ── */
-function initChetipeduMap() {
+/* ── LEAFLET CHETIPEDU MAPS INIT ── */
+function initHomeMap() {
   const lat = 12.9734;
   const lng = 79.9328;
-
-  leafletMap = L.map('app-map').setView([lat, lng], 14);
+  homeMapObj = L.map('app-map').setView([lat, lng], 14);
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '© OpenStreetMap'
-  }).addTo(leafletMap);
+  }).addTo(homeMapObj);
 
-  // Delivery Location Marker
-  L.marker([lat, lng]).addTo(leafletMap)
-    .bindPopup('<b>Your Location</b><br>Chetipedu, TN 602105')
-    .openPopup();
+  L.marker([lat, lng]).addTo(homeMapObj).bindPopup('<b>Chetipedu Delivery</b>').openPopup();
+  L.marker([12.9780, 79.9380]).addTo(homeMapObj).bindPopup('<b>Indian Oil Station</b>');
+  L.marker([12.9680, 79.9250]).addTo(homeMapObj).bindPopup('<b>Bharat Petroleum</b>');
+  L.marker([12.9820, 79.9410]).addTo(homeMapObj).bindPopup('<b>HP Petrol Pump</b>');
+}
 
-  // Nearby Stations
-  L.marker([12.9780, 79.9380]).addTo(leafletMap)
-    .bindPopup('<b>Indian Oil Station</b><br>Chetipedu (0.8 km)');
+function initTrackMap() {
+  const lat = 12.9734;
+  const lng = 79.9328;
+  trackMapObj = L.map('track-map').setView([lat, lng], 14);
 
-  L.marker([12.9680, 79.9250]).addTo(leafletMap)
-    .bindPopup('<b>Bharat Petroleum (BPCL)</b><br>Sriperumbudur (1.5 km)');
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap'
+  }).addTo(trackMapObj);
 
-  L.marker([12.9820, 79.9410]).addTo(leafletMap)
-    .bindPopup('<b>HP Petrol Pump</b><br>Chetipedu Main Rd (2.2 km)');
+  L.marker([lat, lng]).addTo(trackMapObj).bindPopup('<b>Delivery Address</b><br>Chetipedu, TN 602105').openPopup();
+
+  // Agent Icon
+  const agentIcon = L.divIcon({
+    className: 'custom-agent-marker',
+    html: '<div style="background:#E8520A;color:white;padding:5px 10px;border-radius:16px;font-family:Syne,sans-serif;font-weight:700;font-size:11px;box-shadow:0 4px 10px rgba(0,0,0,0.3);">🛵 Agent Ravi (12 min)</div>'
+  });
+  L.marker([12.9760, 79.9360], {icon: agentIcon}).addTo(trackMapObj).bindPopup('<b>Ravi Kumar (Agent #402)</b><br>En route to Chetipedu');
 }
 </script>
 </body>
