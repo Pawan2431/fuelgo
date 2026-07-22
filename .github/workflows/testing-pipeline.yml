@@ -46,6 +46,14 @@ jobs:
           cd fuelgo-backend
           node load-test.js
 
+      - name: Upload Baseline Load Test Excel Report (.xlsx)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Baseline-Load-Test-Excel-Report
+          path: fuelgo-backend/reports/*.xlsx
+          retention-days: 30
+
   # ====================================================
   # JOB 2: Selenium Web E2E Testing & Excel Report
   # ====================================================
