@@ -1,0 +1,149 @@
+name: FuelGo Complete E2E Testing & Excel Analysis Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  # ====================================================
+  # JOB 1: Backend API & Baseline Load Testing
+  # ====================================================
+  load-testing:
+    name: 🚀 Backend API & Baseline Load Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: fuelgo-backend/package-lock.json
+
+      - name: Install Backend Dependencies
+        run: |
+          cd fuelgo-backend
+          npm ci
+
+      - name: Start FuelGo Backend Server
+        run: |
+          cd fuelgo-backend
+          npm start &
+          sleep 3
+
+      - name: Run Autocannon / Node Load Test (100 VUs / 60s)
+        run: |
+          cd fuelgo-backend
+          if [ -f load-test.js ]; then
+            node load-test.js
+          else
+            npx autocannon -c 100 -d 60 http://localhost:3000/api/prices
+          fi
+
+  # ====================================================
+  # JOB 2: Selenium Web E2E Testing & Excel Report
+  # ====================================================
+  selenium-web-tests:
+    name: 🌐 Selenium Web E2E Test & Excel Report
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Chrome Browser
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Install Selenium Web Test Dependencies
+        run: |
+          cd selenium-web-tests
+          npm ci
+
+      - name: Run Selenium Web Tests & Generate Excel Report
+        run: |
+          cd selenium-web-tests
+          node runner.js --mock
+
+      - name: Upload Selenium Excel Report Artifact (.xlsx)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Selenium-Web-Excel-Analysis-Report
+          path: selenium-web-tests/reports/*.xlsx
+          retention-days: 30
+
+  # ====================================================
+  # JOB 3: Appium Android Mobile E2E Testing & Excel Report
+  # ====================================================
+  appium-mobile-tests:
+    name: 📱 Appium Android Mobile E2E Test & Excel Report
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Appium & Android Test Dependencies
+        run: |
+          cd appium-mobile-tests
+          npm ci
+
+      - name: Run Appium Mobile Suite & Generate Excel Report
+        run: |
+          cd appium-mobile-tests
+          node runner.js --mock
+
+      - name: Upload Appium Excel Report Artifact (.xlsx)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Appium-Mobile-Excel-Analysis-Report
+          path: appium-mobile-tests/reports/*.xlsx
+          retention-days: 30
+
+  # ====================================================
+  # JOB 4: Python Appium Suite & OpenPyXL Excel Report
+  # ====================================================
+  python-appium-tests:
+    name: 🐍 Python Appium Suite & OpenPyXL Excel Report
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python Environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python Dependencies
+        run: |
+          cd appium-mobile-tests/python
+          pip install -r requirements.txt
+
+      - name: Run Python Appium Suite & Generate Excel Report
+        run: |
+          cd appium-mobile-tests/python
+          python run_tests.py
+
+      - name: Upload Python Appium Excel Report Artifact (.xlsx)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Python-Appium-Excel-Analysis-Report
+          path: appium-mobile-tests/reports/*.xlsx
+          retention-days: 30
