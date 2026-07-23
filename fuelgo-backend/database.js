@@ -3,7 +3,7 @@ const fs = require('fs');
 const { createClient } = require('@supabase/supabase-js');
 
 // Supabase Cloud Database Configuration
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://feshnblvfdhjgehklvd.supabase.co';
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://feshnblvfdhjvgehklvd.supabase.co';
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlc2huYmx2ZmRoanZnZWhrbHZkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NDc4MjE0NCwiZXhwIjoyMTAwMzU4MTQ0fQ.OR-s7TYXYL2EDgl11A9vNavd-z6UZVG5TvL4tmxDqfY';
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlc2huYmx2ZmRoanZnZWhrbHZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE384NzgyMTQ0LCJleHAiOjIxMDAzNTgxNDR9.8AKDE2oehprL4yYcyKhGBSrX4ovH4OJQkq3paueweE0';
 

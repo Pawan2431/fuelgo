@@ -28,7 +28,7 @@ app.get('/api', (req, res) => {
     version: '2.0.0',
     status: 'ONLINE',
     database: 'Supabase Cloud DB (PostgreSQL) + SQLite Cache',
-    supabase_url: 'https://feshnblvfdhjgehklvd.supabase.co',
+    supabase_url: 'https://feshnblvfdhjvgehklvd.supabase.co',
     endpoints: {
       prices: { method: 'GET', url: '/api/prices', description: 'Fetch fuel rates for Petrol, Diesel, CNG, EV, Premium, LPG' },
       stations: { method: 'GET', url: '/api/stations', description: 'Fetch all gas stations with ratings and available fuels' },
