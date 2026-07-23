@@ -51,11 +51,12 @@ router.post('/login', (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password are required.' });
+    return res.status(400).json({ error: 'Email/Mobile and password are required.' });
   }
 
   try {
-    const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+    // Match by email OR phone number
+    const user = db.prepare('SELECT * FROM users WHERE email = ? OR phone = ?').get(email, email);
 
     if (!user) {
       return res.status(401).json({ error: 'Invalid email or password.' });

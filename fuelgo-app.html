@@ -1050,6 +1050,8 @@ async function executeCustomerLogin() {
   } catch (err) {
     btn.disabled = false;
     btn.innerHTML = '<i class="fas fa-sign-in-alt" style="margin-right:8px;"></i> Sign In Now';
+    errorMsg.textContent = `Login Failed: ${err.message}`;
+    errorBanner.style.display = 'block';
   }
 }
 
