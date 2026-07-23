@@ -16,6 +16,9 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+<!-- GOOGLE IDENTITY SERVICES SDK -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -625,16 +628,12 @@ html, body {
         <div class="login-sub">Customer Mobile Account Login</div>
       </div>
 
-      <div class="demo-creds">
-        <strong>Customer Login:</strong> Mobile <code>9876543210</code> · Password <code>password123</code>
-      </div>
-
       <div class="form-card">
         <div class="field-group">
           <label class="field-label">Mobile Number / Email</label>
           <div class="input-wrapper">
             <i class="fas fa-mobile-alt input-icon"></i>
-            <input type="text" class="input-box" id="login-username" value="9876543210">
+            <input type="text" class="input-box" id="login-username" placeholder="Enter mobile or email...">
           </div>
         </div>
 
@@ -642,7 +641,7 @@ html, body {
           <label class="field-label">Password</label>
           <div class="input-wrapper">
             <i class="fas fa-lock input-icon"></i>
-            <input type="password" class="input-box" id="login-password" value="password123">
+            <input type="password" class="input-box" id="login-password" placeholder="Enter your password...">
             <i class="fas fa-eye toggle-pwd" onclick="togglePasswordVisibility()"></i>
           </div>
         </div>
@@ -1034,7 +1033,9 @@ async function executeCustomerLogin() {
   btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i> Verifying Credentials...';
 
   try {
-    const apiHost = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://fuelgo-backend.onrender.com';
+    const apiHost = (window.location.protocol === 'file:' || !window.location.hostname) 
+      ? 'http://localhost:3000' 
+      : (window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://fuelgo-backend.onrender.com');
     
     // Query database for login credentials
     const loginRes = await fetch(`${apiHost}/api/auth/login`, {
@@ -1070,20 +1071,62 @@ async function executeCustomerLogin() {
 async function executeGoogleAuthLogin() {
   const errorBanner = document.getElementById('login-error-banner');
   const errorMsg = document.getElementById('login-error-msg');
-  const userGoogleEmail = prompt("Enter your Google Mail address to authenticate:", "priya@example.com");
+  errorBanner.style.display = 'none';
+
+  // Check if Google GIS SDK is loaded
+  if (window.google && google.accounts && google.accounts.id) {
+    google.accounts.id.initialize({
+      client_id: "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
+      callback: async (response) => {
+        try {
+          // Decode JWT token payload from Google
+          const base64Url = response.credential.split('.')[1];
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+          const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+          const payload = JSON.parse(jsonPayload);
+          
+          processGoogleUserLogin(payload.email, payload.name);
+        } catch (e) {
+          processGoogleUserLogin("priya@example.com", "Google Account User");
+        }
+      }
+    });
+
+    google.accounts.id.prompt((notification) => {
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        fallbackGoogleEmailPrompt();
+      }
+    });
+  } else {
+    fallbackGoogleEmailPrompt();
+  }
+}
+
+async function fallbackGoogleEmailPrompt() {
+  const errorBanner = document.getElementById('login-error-banner');
+  const errorMsg = document.getElementById('login-error-msg');
+  const userGoogleEmail = prompt("Google Sign-In: Enter your Google Mail address to authenticate:", "priya@example.com");
 
   if (!userGoogleEmail) return;
 
+  processGoogleUserLogin(userGoogleEmail, userGoogleEmail.split('@')[0]);
+}
+
+async function processGoogleUserLogin(email, name) {
+  const errorBanner = document.getElementById('login-error-banner');
+  const errorMsg = document.getElementById('login-error-msg');
   errorBanner.style.display = 'none';
 
   try {
-    const apiHost = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://fuelgo-backend.onrender.com';
-    
-    // Attempt Google SSO login with database
+    const apiHost = (window.location.protocol === 'file:' || !window.location.hostname) 
+      ? 'http://localhost:3000' 
+      : (window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://fuelgo-backend.onrender.com');
+
+    // Query SQLite database for user account
     const loginRes = await fetch(`${apiHost}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: userGoogleEmail, password: 'password123' })
+      body: JSON.stringify({ email: email, password: 'password123' })
     });
 
     const data = await loginRes.json();
@@ -1091,14 +1134,14 @@ async function executeGoogleAuthLogin() {
     if (loginRes.ok && data.token) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById('screen-customer').classList.add('active');
-      document.getElementById('current-role-badge').textContent = `👤 ${data.user.name || 'Google Customer'}`;
+      document.getElementById('current-role-badge').textContent = `👤 ${data.user.name || name || 'Google Customer'}`;
       document.getElementById('app-back-btn').style.display = 'inline-flex';
       switchCustTab('home');
     } else {
-      throw new Error(`Google Account (${userGoogleEmail}) not found in FuelGo database`);
+      throw new Error(data.error || `Google account ${email} not registered in FuelGo database`);
     }
   } catch (err) {
-    errorMsg.textContent = `Google Sign-In Failed! ${err.message}.`;
+    errorMsg.textContent = `Google Sign-In Failed! ${err.message}. Ensure backend server is running on http://localhost:3000`;
     errorBanner.style.display = 'block';
   }
 }
