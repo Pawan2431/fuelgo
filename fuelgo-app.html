@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FuelGo Customer Mobile App — Chetipedu</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1A1208">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="FuelGo.png">
+
+<!-- LEAFLET MAPS CSS & JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --orange: #E8520A;
+  --orange2: #FF6820;
+  --deep: #1A1208;
+  --deep2: #241A0E;
+  --amber: #F7A32B;
+  --surface: #FDF8F2;
+  --card: #FFFFFF;
+  --muted: #8A7B68;
+  --green: #2D8A5A;
+  --red: #D32F2F;
+  --border: rgba(0,0,0,0.08);
+  --font-head: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: var(--deep);
+  font-family: var(--font-body);
+  color: var(--deep);
+  overflow-x: hidden;
+}
+
+/* ── APP CONTAINER ── */
+.app-viewport {
+  max-width: 480px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: var(--surface);
+  position: relative;
+  box-shadow: 0 0 50px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 110px;
+}
+
+/* ── APP HEADER ── */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: rgba(26,18,8,0.96);
+  backdrop-filter: blur(12px);
+  border-bottom: 0.5px solid rgba(255,255,255,0.08);
+}
+
+.brand-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.brand-link img {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+}
+
+.brand-logo {
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 20px;
+  color: white;
+  letter-spacing: -0.5px;
+}
+.brand-logo span { color: var(--orange); }
+
+.role-badge {
+  background: rgba(255,255,255,0.1);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-family: var(--font-head);
+  font-weight: 700;
+}
+
+/* ── SCREENS & SUB-SCREENS ── */
+.screen, .cust-sub-screen {
+  display: none;
+  animation: fadeIn 0.25s ease-out forwards;
+}
+.screen.active, .cust-sub-screen.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── LOGIN SCREEN ── */
+.login-container { padding: 36px 24px; }
+
+.login-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.login-logo-img { height: 54px; width: auto; margin-bottom: 12px; }
+.login-title { font-family: var(--font-head); font-weight: 800; font-size: 26px; color: var(--deep); margin-bottom: 4px; }
+.login-sub { font-size: 13px; color: var(--muted); }
+
+.form-card {
+  background: white;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  padding: 24px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+}
+
+.field-group { margin-bottom: 16px; }
+
+.field-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon { position: absolute; left: 14px; color: var(--muted); font-size: 14px; }
+
+.input-box, .select-box {
+  width: 100%;
+  padding: 12px 14px 12px 40px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--deep);
+  outline: none;
+}
+
+.toggle-pwd { position: absolute; right: 14px; color: var(--muted); cursor: pointer; font-size: 14px; }
+
+.demo-creds {
+  background: #FFF6F0;
+  border: 1px solid rgba(232,82,10,0.2);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 11px;
+  color: var(--orange);
+  margin-bottom: 16px;
+}
+
+.btn-login {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  background: var(--orange);
+  color: white;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+.btn-login:hover { background: var(--orange2); }
+.btn-login:active { transform: scale(0.98); }
+
+/* ── HOME & SUB SCREENS ── */
+.home-banner {
+  background: var(--deep);
+  color: white;
+  padding: 24px 20px 30px;
+  position: relative;
+}
+
+.user-greeting {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.greeting-text { font-size: 13px; color: rgba(255,255,255,0.6); }
+.greeting-name { font-family: var(--font-head); font-size: 22px; font-weight: 800; color: white; }
+
+.location-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.08);
+  border: 0.5px solid rgba(255,255,255,0.12);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.85);
+}
+
+.live-card {
+  background: rgba(255,255,255,0.05);
+  border: 0.5px solid rgba(255,255,255,0.1);
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.stat-box {
+  background: rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 10px 8px;
+  text-align: center;
+}
+
+.stat-val { font-family: var(--font-head); font-weight: 800; font-size: 17px; color: white; }
+.stat-lbl { font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+
+.section-padding { padding: 20px 20px 100px; }
+.sec-title { font-family: var(--font-head); font-weight: 800; font-size: 18px; color: var(--deep); margin-bottom: 12px; }
+
+/* ── LEAFLET MAP CONTAINERS ── */
+#app-map, #track-map {
+  width: 100%;
+  height: 250px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  margin-bottom: 16px;
+  z-index: 10;
+}
+
+/* ── NEARBY STATIONS GRID ── */
+.station-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.station-item {
+  background: white;
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.station-item.active, .station-item:hover {
+  border-color: var(--orange);
+  background: #FFF6F0;
+}
+
+.station-name { font-family: var(--font-head); font-weight: 700; font-size: 13px; color: var(--deep); }
+.station-sub { font-size: 11px; color: var(--muted); }
+.station-dist { font-family: var(--font-head); font-weight: 800; font-size: 12px; color: var(--orange); }
+
+.fuel-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.fuel-btn {
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  padding: 10px 4px;
+  text-align: center;
+  cursor: pointer;
+  background: white;
+  transition: all 0.15s;
+}
+
+.fuel-btn.active {
+  border-color: var(--orange);
+  background: #FFF6F0;
+}
+
+.fuel-btn-icon { font-size: 20px; display: block; margin-bottom: 2px; }
+.fuel-btn-name { font-family: var(--font-head); font-weight: 700; font-size: 11px; color: var(--deep); }
+.fuel-btn-price { font-size: 10px; color: var(--muted); }
+
+.qty-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.qty-btn {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--deep);
+}
+
+.qty-val {
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 24px;
+  color: var(--deep);
+  min-width: 50px;
+  text-align: center;
+}
+
+.summary-banner {
+  background: var(--deep);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  color: white;
+}
+
+.summary-price { font-family: var(--font-head); font-weight: 800; font-size: 20px; color: white; }
+
+/* ── TRACKING COMPONENTS ── */
+.eta-card {
+  background: var(--deep);
+  color: white;
+  border-radius: 18px;
+  padding: 18px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.eta-title { font-size: 12px; color: rgba(255,255,255,0.6); }
+.eta-time { font-family: var(--font-head); font-weight: 800; font-size: 24px; color: var(--orange); }
+
+.driver-card {
+  background: white;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.driver-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.driver-avatar {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: var(--orange);
+  color: white;
+  font-family: var(--font-head);
+  font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+
+.driver-name { font-family: var(--font-head); font-weight: 700; font-size: 15px; }
+.driver-sub { font-size: 11px; color: var(--muted); }
+
+.driver-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.btn-driver-action {
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  color: var(--deep);
+}
+
+.timeline-card {
+  background: white;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  padding: 18px;
+  margin-bottom: 20px;
+}
+
+.timeline-step {
+  display: flex;
+  gap: 14px;
+  position: relative;
+  padding-bottom: 18px;
+}
+.timeline-step:last-child { padding-bottom: 0; }
+
+.timeline-step::before {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 24px;
+  bottom: 0;
+  width: 2px;
+  background: var(--border);
+}
+.timeline-step:last-child::before { display: none; }
+
+.step-icon {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: #E0E0E0;
+  color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  z-index: 2;
+}
+
+.timeline-step.done .step-icon { background: var(--green); }
+.timeline-step.active .step-icon { background: var(--orange); }
+
+.step-title { font-family: var(--font-head); font-weight: 700; font-size: 13px; color: var(--deep); }
+.step-desc { font-size: 11px; color: var(--muted); }
+
+/* ── HISTORY COMPONENTS ── */
+.history-stats-banner {
+  background: var(--deep);
+  color: white;
+  border-radius: 18px;
+  padding: 16px;
+  margin-bottom: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  text-align: center;
+}
+
+.hist-stat-val { font-family: var(--font-head); font-weight: 800; font-size: 18px; color: white; }
+.hist-stat-lbl { font-size: 10px; color: rgba(255,255,255,0.5); }
+
+.history-card {
+  background: white;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.history-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.order-id { font-family: var(--font-head); font-weight: 700; font-size: 12px; color: var(--orange); }
+.order-date { font-size: 11px; color: var(--muted); }
+
+.history-card-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.hist-fuel-name { font-family: var(--font-head); font-weight: 800; font-size: 16px; color: var(--deep); }
+.hist-station-name { font-size: 11px; color: var(--muted); }
+.hist-price-val { font-family: var(--font-head); font-weight: 800; font-size: 17px; color: var(--green); text-align: right; }
+
+.history-card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-hist-action {
+  flex: 1;
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 11px;
+  cursor: pointer;
+  text-align: center;
+  color: var(--deep);
+}
+
+/* ── CONFIRMATION MODAL ── */
+.confirm-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 300;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.confirm-card {
+  background: white;
+  border-radius: 24px;
+  padding: 24px;
+  max-width: 380px;
+  width: 100%;
+}
+
+.confirm-title { font-family: var(--font-head); font-weight: 800; font-size: 20px; color: var(--deep); margin-bottom: 14px; text-align: center; }
+
+.confirm-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.confirm-row:last-child { border-bottom: none; }
+.confirm-lbl { color: var(--muted); }
+.confirm-val { font-family: var(--font-head); font-weight: 700; color: var(--deep); }
+
+/* ── BOTTOM NAV (CUSTOMER) ── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  height: 64px;
+  background: rgba(26,18,8,0.96);
+  backdrop-filter: blur(12px);
+  border-top: 0.5px solid rgba(255,255,255,0.08);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 200;
+}
+
+.tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  color: rgba(255,255,255,0.5);
+  font-size: 10px;
+  font-family: var(--font-head);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.tab-item i { font-size: 18px; }
+.tab-item.active { color: var(--orange); }
+</style>
+</head>
+<body>
+
+<div class="app-viewport">
+  <!-- ── HEADER ── -->
+  <header class="app-header">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <button class="back-arrow-btn" id="app-back-btn" onclick="handleTopBackNavigation()" style="background: transparent; border: none; color: white; font-size: 18px; cursor: pointer; padding: 6px 8px; display: none;" title="Go Back">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+      <a href="#" class="brand-link">
+        <img src="FuelGo.png" alt="FuelGo Logo">
+        <span class="brand-logo">Fuel<span>Go</span></span>
+      </a>
+    </div>
+    <div id="header-right-area">
+      <span class="role-badge" id="current-role-badge">Login Required</span>
+    </div>
+  </header>
+
+  <!-- ── 1. CUSTOMER LOGIN SCREEN ── -->
+  <div id="screen-login" class="screen active">
+    <div class="login-container">
+      <div class="login-header">
+        <img src="FuelGo.png" alt="FuelGo Logo" class="login-logo-img">
+        <div class="login-title">Sign in to FuelGo</div>
+        <div class="login-sub">Customer Mobile Account Login</div>
+      </div>
+
+      <div class="form-card">
+        <div class="field-group">
+          <label class="field-label">Mobile Number / Email</label>
+          <div class="input-wrapper">
+            <i class="fas fa-mobile-alt input-icon"></i>
+            <input type="text" class="input-box" id="login-username" placeholder="Enter mobile or email...">
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Password</label>
+          <div class="input-wrapper">
+            <i class="fas fa-lock input-icon"></i>
+            <input type="password" class="input-box" id="login-password" placeholder="Enter your password...">
+            <i class="fas fa-eye toggle-pwd" onclick="togglePasswordVisibility()"></i>
+          </div>
+        </div>
+
+        <div id="login-error-banner" style="display:none;margin-bottom:14px;padding:12px;border-radius:10px;background:#F8D7DA;color:#721C24;border:1px solid #F5C6CB;font-size:13px;text-align:center;font-weight:600;">
+          <i class="fas fa-exclamation-circle" style="margin-right:6px;"></i> <span id="login-error-msg">Login Failed! Invalid email or password.</span>
+        </div>
+
+        <button class="btn-login" id="btn-submit-login" onclick="executeCustomerLogin()">
+          <i class="fas fa-sign-in-alt" style="margin-right:8px;"></i> Sign In Now
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 2. CUSTOMER MOBILE APP SCREEN ── -->
+  <div id="screen-customer" class="screen">
+    
+    <!-- ── TAB 1: HOME SUB-SCREEN ── -->
+    <div id="cust-sub-home" class="cust-sub-screen active">
+      <div class="home-banner">
+        <div class="user-greeting">
+          <div>
+            <div class="greeting-text">Welcome Back</div>
+            <div class="greeting-name">Pawan Teja</div>
+          </div>
+          <div class="location-pill">📍 Chetipedu, Tamil Nadu</div>
+        </div>
+        <div class="live-card">
+          <div style="font-family:var(--font-head);font-size:13px;color:white;font-weight:700;margin-bottom:8px;">Live Chetipedu Account Status</div>
+          <div class="stats-grid">
+            <div class="stat-box"><div class="stat-val">₹2,059</div><div class="stat-lbl">Spend</div></div>
+            <div class="stat-box"><div class="stat-val">340L</div><div class="stat-lbl">Delivered</div></div>
+            <div class="stat-box"><div class="stat-val">1,240</div><div class="stat-lbl">Points</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-padding">
+        <div class="sec-title">Exact Map & Nearby Stations</div>
+        <div id="app-map"></div>
+
+        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Select Station Source:</div>
+        <div class="station-list">
+          <div class="station-item active" onclick="selectStation(this, 'Indian Oil Chetipedu (0.8 km)', 0.8)">
+            <div>
+              <div class="station-name">⛽ Indian Oil Station</div>
+              <div class="station-sub">Chetipedu Main Road</div>
+            </div>
+            <div class="station-dist">0.8 km</div>
+          </div>
+
+          <div class="station-item" onclick="selectStation(this, 'Bharat Petroleum Sriperumbudur (1.5 km)', 1.5)">
+            <div>
+              <div class="station-name">⛽ Bharat Petroleum (BPCL)</div>
+              <div class="station-sub">Sriperumbudur Highway</div>
+            </div>
+            <div class="station-dist">1.5 km</div>
+          </div>
+
+          <div class="station-item" onclick="selectStation(this, 'HP Petrol Pump Chetipedu (2.2 km)', 2.2)">
+            <div>
+              <div class="station-name">⛽ HP Petrol Pump</div>
+              <div class="station-sub">Chetipedu Bypass</div>
+            </div>
+            <div class="station-dist">2.2 km</div>
+          </div>
+        </div>
+
+        <div class="sec-title">Order Fuel Dispatch</div>
+        <div class="form-card" style="margin-bottom: 40px;">
+          <div class="field-group">
+            <label class="field-label">Delivery Address</label>
+            <input type="text" class="input-box" id="cust-delivery-addr" style="padding-left:14px;" value="Chetipedu, Tamil Nadu — 602105">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Fuel Type</label>
+            <div class="fuel-grid">
+              <div class="fuel-btn active" onclick="chooseFuel(this, 'Petrol', 101.5)">
+                <span class="fuel-btn-icon">⛽</span>
+                <div class="fuel-btn-name">Petrol</div>
+                <div class="fuel-btn-price">₹101.5</div>
+              </div>
+              <div class="fuel-btn" onclick="chooseFuel(this, 'Diesel', 89.2)">
+                <span class="fuel-btn-icon">🛢️</span>
+                <div class="fuel-btn-name">Diesel</div>
+                <div class="fuel-btn-price">₹89.2</div>
+              </div>
+              <div class="fuel-btn" onclick="chooseFuel(this, 'Premium', 112)">
+                <span class="fuel-btn-icon">✨</span>
+                <div class="fuel-btn-name">Premium</div>
+                <div class="fuel-btn-price">₹112</div>
+              </div>
+              <div class="fuel-btn" onclick="chooseFuel(this, 'LPG', 68)">
+                <span class="fuel-btn-icon">💨</span>
+                <div class="fuel-btn-name">LPG</div>
+                <div class="fuel-btn-price">₹68</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Quantity (Litres)</label>
+            <div class="qty-row">
+              <button class="qty-btn" onclick="stepQty(-5)">−</button>
+              <div class="qty-val" id="cust-qty-val">20</div>
+              <button class="qty-btn" onclick="stepQty(5)">+</button>
+              <span style="font-size:12px;color:var(--muted);">Litres</span>
+            </div>
+          </div>
+
+          <div class="summary-banner">
+            <div id="cust-sum-txt" style="font-size:12px;color:rgba(255,255,255,0.6);">Petrol × 20L + ₹29 fee</div>
+            <div class="summary-price" id="cust-total-val">₹2,059</div>
+          </div>
+
+          <button class="btn-login" style="width:100%;" onclick="openOrderConfirmModal()">
+            Proceed to Confirm Order
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB 2: LIVE GPS TRACKING SUB-SCREEN ── -->
+    <div id="cust-sub-track" class="cust-sub-screen">
+      <div class="section-padding">
+        <div class="eta-card">
+          <div>
+            <div class="eta-title">Guaranteed Arrival Time</div>
+            <div style="font-family:var(--font-head);font-weight:700;font-size:14px;color:white;margin-top:2px;">Order #FG-8821</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="eta-time">⚡ 12 Mins</div>
+            <div style="font-size:10px;color:#4AE88A;font-weight:600;">● Agent Moving</div>
+          </div>
+        </div>
+
+        <div class="sec-title">Live Dispatch Map</div>
+        <div id="track-map"></div>
+
+        <div class="driver-card">
+          <div class="driver-top">
+            <div class="driver-avatar">RK</div>
+            <div style="flex:1;">
+              <div class="driver-name">Ravi Kumar (Agent #402) ★ 4.9</div>
+              <div class="driver-sub">Vehicle: TN-01-FG-8821 · Fuel Dispenser Tanker</div>
+            </div>
+          </div>
+          <div class="driver-actions">
+            <button class="btn-driver-action" onclick="alert('Calling Agent Ravi Kumar (+91 98765 12345)...')">
+              <i class="fas fa-phone-alt" style="color:var(--green);"></i> Call Agent
+            </button>
+            <button class="btn-driver-action" onclick="alert('Opening chat with Agent Ravi Kumar...')">
+              <i class="fas fa-comment-alt" style="color:var(--orange);"></i> Message
+            </button>
+          </div>
+        </div>
+
+        <div class="timeline-card">
+          <div style="font-family:var(--font-head);font-weight:700;font-size:14px;margin-bottom:14px;">Delivery Status Timeline:</div>
+          
+          <div class="timeline-step done">
+            <div class="step-icon">✓</div>
+            <div>
+              <div class="step-title">Order Placed & Confirmed</div>
+              <div class="step-desc">10:15 AM · Indian Oil Station Chetipedu</div>
+            </div>
+          </div>
+
+          <div class="timeline-step active">
+            <div class="step-icon">🚚</div>
+            <div>
+              <div class="step-title">Agent En Route to Destination</div>
+              <div class="step-desc">10:18 AM · 0.8 km away from Chetipedu location</div>
+            </div>
+          </div>
+
+          <div class="timeline-step">
+            <div class="step-icon">⛽</div>
+            <div>
+              <div class="step-title">Arriving & Fuel Dispensing</div>
+              <div class="step-desc">Estimated Arrival: 10:27 AM</div>
+            </div>
+          </div>
+
+          <div class="timeline-step">
+            <div class="step-icon">🏁</div>
+            <div>
+              <div class="step-title">Order Complete & E-Receipt</div>
+              <div class="step-desc">Pending delivery verification</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB 3: PAST ORDERS HISTORY SUB-SCREEN ── -->
+    <div id="cust-sub-history" class="cust-sub-screen">
+      <div class="section-padding">
+        <div class="history-stats-banner">
+          <div>
+            <div class="hist-stat-val">₹7,862</div>
+            <div class="hist-stat-lbl">Total Spend</div>
+          </div>
+          <div>
+            <div class="hist-stat-val">65L</div>
+            <div class="hist-stat-lbl">Delivered</div>
+          </div>
+          <div>
+            <div class="hist-stat-val">4</div>
+            <div class="hist-stat-lbl">Total Orders</div>
+          </div>
+        </div>
+
+        <div class="sec-title">Past Fuel Deliveries</div>
+
+        <!-- ORDER CARD 1 -->
+        <div class="history-card">
+          <div class="history-card-header">
+            <span class="order-id">#FG-8821</span>
+            <span class="order-date">Today, 10:15 AM</span>
+          </div>
+          <div class="history-card-body">
+            <div>
+              <div class="hist-fuel-name">⛽ Petrol · 20 Litres</div>
+              <div class="hist-station-name">Indian Oil Station Chetipedu</div>
+            </div>
+            <div class="hist-price-val">₹2,059</div>
+          </div>
+          <div class="history-card-actions">
+            <button class="btn-hist-action" onclick="alert('Receipt #FG-8821 Downloaded PDF')">📄 Invoice</button>
+            <button class="btn-hist-action" style="background:var(--orange);color:white;border:none;" onclick="reorderFuel('Petrol', 20)">🔄 Reorder</button>
+          </div>
+        </div>
+
+        <!-- ORDER CARD 2 -->
+        <div class="history-card">
+          <div class="history-card-header">
+            <span class="order-id">#FG-8402</span>
+            <span class="order-date">Yesterday, 4:20 PM</span>
+          </div>
+          <div class="history-card-body">
+            <div>
+              <div class="hist-fuel-name">🛢️ Diesel · 30 Litres</div>
+              <div class="hist-station-name">Bharat Petroleum Sriperumbudur</div>
+            </div>
+            <div class="hist-price-val">₹2,705</div>
+          </div>
+          <div class="history-card-actions">
+            <button class="btn-hist-action" onclick="alert('Receipt #FG-8402 Downloaded PDF')">📄 Invoice</button>
+            <button class="btn-hist-action" style="background:var(--orange);color:white;border:none;" onclick="reorderFuel('Diesel', 30)">🔄 Reorder</button>
+          </div>
+        </div>
+
+        <!-- ORDER CARD 3 -->
+        <div class="history-card">
+          <div class="history-card-header">
+            <span class="order-id">#FG-7910</span>
+            <span class="order-date">20 Jul 2026, 11:30 AM</span>
+          </div>
+          <div class="history-card-body">
+            <div>
+              <div class="hist-fuel-name">✨ Premium Petrol · 15 Litres</div>
+              <div class="hist-station-name">HP Petrol Pump Chetipedu</div>
+            </div>
+            <div class="hist-price-val">₹1,709</div>
+          </div>
+          <div class="history-card-actions">
+            <button class="btn-hist-action" onclick="alert('Receipt #FG-7910 Downloaded PDF')">📄 Invoice</button>
+            <button class="btn-hist-action" style="background:var(--orange);color:white;border:none;" onclick="reorderFuel('Premium', 15)">🔄 Reorder</button>
+          </div>
+        </div>
+
+        <!-- ORDER CARD 4 -->
+        <div class="history-card">
+          <div class="history-card-header">
+            <span class="order-id">#FG-7104</span>
+            <span class="order-date">15 Jul 2026, 2:45 PM</span>
+          </div>
+          <div class="history-card-body">
+            <div>
+              <div class="hist-fuel-name">💨 LPG · 2 Cylinders</div>
+              <div class="hist-station-name">Indian Oil Station Chetipedu</div>
+            </div>
+            <div class="hist-price-val">₹1,389</div>
+          </div>
+          <div class="history-card-actions">
+            <button class="btn-hist-action" onclick="alert('Receipt #FG-7104 Downloaded PDF')">📄 Invoice</button>
+            <button class="btn-hist-action" style="background:var(--orange);color:white;border:none;" onclick="reorderFuel('LPG', 2)">🔄 Reorder</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM TAB NAV -->
+    <nav class="bottom-nav">
+      <div class="tab-item active" onclick="switchCustTab('home')"><i class="fas fa-home"></i>Home</div>
+      <div class="tab-item" onclick="switchCustTab('track')"><i class="fas fa-map-marker-alt"></i>Track</div>
+      <div class="tab-item" onclick="switchCustTab('history')"><i class="fas fa-history"></i>History</div>
+      <div class="tab-item" onclick="logoutCustomer()"><i class="fas fa-sign-out-alt"></i>Logout</div>
+    </nav>
+  </div>
+
+  <!-- ── CONFIRM ORDER MODAL ── -->
+  <div id="confirmModal" class="confirm-modal-overlay">
+    <div class="confirm-card">
+      <div class="confirm-title">Confirm Fuel Order</div>
+
+      <div class="confirm-row">
+        <span class="confirm-lbl">Delivery Location</span>
+        <span class="confirm-val" id="cfm-addr">Chetipedu, TN 602105</span>
+      </div>
+      <div class="confirm-row">
+        <span class="confirm-lbl">Station Source</span>
+        <span class="confirm-val" id="cfm-station">Indian Oil Chetipedu</span>
+      </div>
+      <div class="confirm-row">
+        <span class="confirm-lbl">Fuel & Quantity</span>
+        <span class="confirm-val" id="cfm-fuel">Petrol · 20 Litres</span>
+      </div>
+      <div class="confirm-row">
+        <span class="confirm-lbl">Estimated Arrival</span>
+        <span class="confirm-val" style="color:var(--orange);">⚡ 12 Minutes (Ravi Kumar)</span>
+      </div>
+      <div class="confirm-row">
+        <span class="confirm-lbl">Total Payable</span>
+        <span class="confirm-val" id="cfm-price" style="font-size:16px;color:var(--green);">₹2,059</span>
+      </div>
+
+      <button class="btn-login" style="margin-top:16px;" onclick="confirmAndTrackOrder()">
+        Confirm & Track Live Delivery
+      </button>
+      <button class="btn-login" style="margin-top:8px;background:var(--surface);color:var(--deep);" onclick="closeConfirmModal()">
+        Back to Edit
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+let custQty = 20;
+let custPrice = 101.5;
+let custFuel = 'Petrol';
+let selectedStationName = 'Indian Oil Chetipedu (0.8 km)';
+let homeMapInit = false;
+let trackMapInit = false;
+let homeMapObj = null;
+let trackMapObj = null;
+
+function togglePasswordVisibility() {
+  const input = document.getElementById('login-password');
+  const icon = document.querySelector('.toggle-pwd');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.classList.replace('fa-eye', 'fa-eye-slash');
+  } else {
+    input.type = 'password';
+    icon.classList.replace('fa-eye-slash', 'fa-eye');
+  }
+}
+
+async function executeCustomerLogin() {
+  const emailInput = document.getElementById('login-username').value.trim();
+  const pwdInput = document.getElementById('login-password').value.trim();
+  const errorBanner = document.getElementById('login-error-banner');
+  const errorMsg = document.getElementById('login-error-msg');
+  const btn = document.getElementById('btn-submit-login');
+
+  errorBanner.style.display = 'none';
+
+  if (!emailInput || !pwdInput) {
+    errorMsg.textContent = 'Login Failed! Mobile/Email and Password are required.';
+    errorBanner.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i> Verifying Credentials...';
+
+  try {
+    const apiHost = (window.location.protocol === 'file:' || !window.location.hostname) 
+      ? 'http://localhost:3000' 
+      : (window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://fuelgo-backend.onrender.com');
+    
+    // Query database for login credentials
+    const loginRes = await fetch(`${apiHost}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: emailInput, password: pwdInput })
+    });
+
+    const data = await loginRes.json();
+
+    if (loginRes.ok && data.token) {
+      // Login Success
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-sign-in-alt" style="margin-right:8px;"></i> Sign In Now';
+      
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('screen-customer').classList.add('active');
+      document.getElementById('current-role-badge').textContent = `👤 ${data.user.name || 'Chetipedu Customer'}`;
+      document.getElementById('app-back-btn').style.display = 'inline-flex';
+      switchCustTab('home');
+    } else {
+      // Login Failed
+      throw new Error(data.error || 'Invalid credentials');
+    }
+  } catch (err) {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-sign-in-alt" style="margin-right:8px;"></i> Sign In Now';
+    errorMsg.textContent = `Login Failed: ${err.message}`;
+    errorBanner.style.display = 'block';
+  }
+}
+
+function logoutCustomer() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-login').classList.add('active');
+  document.getElementById('current-role-badge').textContent = 'Login Required';
+  document.getElementById('app-back-btn').style.display = 'none';
+}
+
+function handleTopBackNavigation() {
+  logoutCustomer();
+}
+
+function switchCustTab(tabName) {
+  document.querySelectorAll('.cust-sub-screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+
+  const tabs = document.querySelectorAll('.tab-item');
+
+  if (tabName === 'home') {
+    document.getElementById('cust-sub-home').classList.add('active');
+    tabs[0].classList.add('active');
+    if (!homeMapInit) {
+      setTimeout(initHomeMap, 150);
+      homeMapInit = true;
+    } else if (homeMapObj) {
+      setTimeout(() => homeMapObj.invalidateSize(), 150);
+    }
+  } else if (tabName === 'track') {
+    document.getElementById('cust-sub-track').classList.add('active');
+    tabs[1].classList.add('active');
+    if (!trackMapInit) {
+      setTimeout(initTrackMap, 150);
+      trackMapInit = true;
+    } else if (trackMapObj) {
+      setTimeout(() => trackMapObj.invalidateSize(), 150);
+    }
+  } else if (tabName === 'history') {
+    document.getElementById('cust-sub-history').classList.add('active');
+    tabs[2].classList.add('active');
+  }
+}
+
+function selectStation(el, name, dist) {
+  document.querySelectorAll('.station-item').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  selectedStationName = name;
+}
+
+function chooseFuel(el, fuel, price) {
+  document.querySelectorAll('.fuel-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  custFuel = fuel;
+  custPrice = price;
+  updateCustCalc();
+}
+
+function stepQty(delta) {
+  custQty = Math.max(5, Math.min(100, custQty + delta));
+  document.getElementById('cust-qty-val').textContent = custQty;
+  updateCustCalc();
+}
+
+function updateCustCalc() {
+  const sub = Math.round(custPrice * custQty * 10) / 10;
+  const total = sub + 29;
+  document.getElementById('cust-sum-txt').textContent = custFuel + ' × ' + custQty + 'L + ₹29 fee';
+  document.getElementById('cust-total-val').textContent = '₹' + total.toLocaleString('en-IN');
+}
+
+function openOrderConfirmModal() {
+  const addr = document.getElementById('cust-delivery-addr').value || 'Chetipedu, TN 602105';
+  const total = document.getElementById('cust-total-val').textContent;
+
+  document.getElementById('cfm-addr').textContent = addr;
+  document.getElementById('cfm-station').textContent = selectedStationName;
+  document.getElementById('cfm-fuel').textContent = custFuel + ' · ' + custQty + ' Litres';
+  document.getElementById('cfm-price').textContent = total;
+
+  document.getElementById('confirmModal').style.display = 'flex';
+}
+
+function closeConfirmModal() {
+  document.getElementById('confirmModal').style.display = 'none';
+}
+
+async function confirmAndTrackOrder() {
+  closeConfirmModal();
+  try {
+    const apiHost = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://fuelgo-backend.onrender.com';
+    const loginRes = await fetch(`${apiHost}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'priya@example.com', password: 'password123' })
+    });
+    const loginData = await loginRes.json();
+    
+    if (loginData.token) {
+      await fetch(`${apiHost}/api/orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${loginData.token}`
+        },
+        body: JSON.stringify({
+          station_id: 1,
+          fuel_type: custFuel.toLowerCase(),
+          quantity_litres: custQty,
+          payment_method: custPayment
+        })
+      });
+    }
+  } catch (err) {
+    console.log('Database note:', err);
+  }
+  switchCustTab('track');
+}
+
+function reorderFuel(fuel, qty) {
+  switchCustTab('home');
+  alert('Reordering ' + fuel + ' (' + qty + 'L)...');
+}
+
+/* ── LEAFLET CHETIPEDU MAPS INIT ── */
+function initHomeMap() {
+  const lat = 12.9734;
+  const lng = 79.9328;
+  homeMapObj = L.map('app-map').setView([lat, lng], 14);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap'
+  }).addTo(homeMapObj);
+
+  L.marker([lat, lng]).addTo(homeMapObj).bindPopup('<b>Chetipedu Delivery</b>').openPopup();
+  L.marker([12.9780, 79.9380]).addTo(homeMapObj).bindPopup('<b>Indian Oil Station</b>');
+  L.marker([12.9680, 79.9250]).addTo(homeMapObj).bindPopup('<b>Bharat Petroleum</b>');
+  L.marker([12.9820, 79.9410]).addTo(homeMapObj).bindPopup('<b>HP Petrol Pump</b>');
+}
+
+function initTrackMap() {
+  const lat = 12.9734;
+  const lng = 79.9328;
+  trackMapObj = L.map('track-map').setView([lat, lng], 14);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap'
+  }).addTo(trackMapObj);
+
+  // Delivery destination marker
+  L.marker([lat, lng]).addTo(trackMapObj).bindPopup('<b>Delivery Address</b><br>Chetipedu, TN 602105').openPopup();
+
+  // Agent Icon
+  const agentIcon = L.divIcon({
+    className: 'custom-agent-marker',
+    html: '<div style="background:#E8520A;color:white;padding:6px 14px;border-radius:20px;font-family:Syne,sans-serif;font-weight:700;font-size:11px;white-space:nowrap;box-shadow:0 4px 15px rgba(232,82,10,0.5);border:2px solid white;">🛵 Agent Ravi (12 min)</div>',
+    iconSize: [145, 32],
+    iconAnchor: [72, 16]
+  });
+  L.marker([12.9760, 79.9360], {icon: agentIcon}).addTo(trackMapObj).bindPopup('<b>Ravi Kumar (Agent #402)</b><br>En route to Chetipedu');
+
+  // Draw connecting route polyline
+  L.polyline([[12.9780, 79.9380], [12.9760, 79.9360], [lat, lng]], {color: '#E8520A', weight: 4, dashArray: '8, 8'}).addTo(trackMapObj);
+}
+
+// Register PWA Service Worker for Mobile App Installation
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed:', err));
+  });
+}
+</script>
+</body>
+</html>
