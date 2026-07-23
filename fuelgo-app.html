@@ -245,7 +245,7 @@ html, body {
 .stat-val { font-family: var(--font-head); font-weight: 800; font-size: 17px; color: white; }
 .stat-lbl { font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 2px; }
 
-.section-padding { padding: 20px; }
+.section-padding { padding: 20px 20px 100px; }
 .sec-title { font-family: var(--font-head); font-weight: 800; font-size: 18px; color: var(--deep); margin-bottom: 12px; }
 
 /* ── LEAFLET MAP CONTAINERS ── */
@@ -1138,7 +1138,9 @@ function initTrackMap() {
   // Agent Icon
   const agentIcon = L.divIcon({
     className: 'custom-agent-marker',
-    html: '<div style="background:#E8520A;color:white;padding:5px 10px;border-radius:16px;font-family:Syne,sans-serif;font-weight:700;font-size:11px;box-shadow:0 4px 10px rgba(0,0,0,0.3);">🛵 Agent Ravi (12 min)</div>'
+    html: '<div style="background:#E8520A;color:white;padding:6px 14px;border-radius:20px;font-family:Syne,sans-serif;font-weight:700;font-size:11px;white-space:nowrap;box-shadow:0 4px 15px rgba(232,82,10,0.5);border:2px solid white;">🛵 Agent Ravi (12 min)</div>',
+    iconSize: [145, 32],
+    iconAnchor: [72, 16]
   });
   L.marker([12.9760, 79.9360], {icon: agentIcon}).addTo(trackMapObj).bindPopup('<b>Ravi Kumar (Agent #402)</b><br>En route to Chetipedu');
 
