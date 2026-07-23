@@ -32,19 +32,43 @@ The platform features:
 
 ---
 
+## 📁 Decoupled Project Structure
+
+The project is structured into clear, independent **frontend** and **backend** subfolders for independent deployment:
+
+```
+FUELGO/
+├── 🎨 fuelgo-frontend/     --> Standalone Web App & PWA (Deployable to Vercel/Netlify/GitHub Pages)
+│   ├── index.html          --> Desktop & Web Landing Page
+│   ├── fuelgo-app.html     --> Mobile Customer PWA Application
+│   ├── manifest.json       --> PWA Application Manifest
+│   ├── sw.js               --> PWA Service Worker Cache
+│   ├── package.json        --> Frontend dependencies
+│   └── README.md           --> Frontend Setup Documentation
+│
+├── ⚙️ fuelgo-backend/      --> Standalone REST API & Cloud Database Engine (Deployable to Render/Fly.io)
+│   ├── server.js           --> Express.js HTTP Server & Endpoint Routing
+│   ├── database.js         --> Supabase (PostgreSQL), Firebase RTDB & SQLite Connector
+│   ├── routes/             --> API Route Modules (auth.js, orders.js, prices.js, stations.js)
+│   ├── supabase_schema.sql --> Supabase SQL Setup Script
+│   └── .env                --> Supabase API Keys & Environment Configuration
+```
+
+---
+
 ## 🏗️ Architecture & Component Overview
 
 ```mermaid
 graph TD
     User["👤 Customer (Web & Android App)"]
-    WebLanding["🌐 index.html (Responsive Landing)"]
-    MobileApp["📱 fuelgo-app.html (Customer Mobile PWA)"]
+    WebLanding["🌐 fuelgo-frontend/index.html"]
+    MobileApp["📱 fuelgo-frontend/fuelgo-app.html"]
     
-    Backend["⚙️ Node.js / Express REST API (server.js)"]
+    Backend["⚙️ fuelgo-backend (Node.js REST API)"]
     
     DB1[("⚡ Supabase Cloud DB (PostgreSQL)")]
     DB2[("🔥 Firebase Realtime DB")]
-    DB3[("🗄️ SQLite Database (fuelgo.db)")]
+    DB3[("🗄️ SQLite Local Engine (fuelgo.db)")]
     
     User --> WebLanding
     User --> MobileApp
@@ -52,11 +76,10 @@ graph TD
     WebLanding -->|POST /api/orders| Backend
     MobileApp -->|POST /api/auth/login| Backend
     MobileApp -->|POST /api/orders| Backend
-    MobileApp -->|PATCH /api/orders/:id/location| Backend
     
     Backend <-->|Real-time Upsert| DB1
     Backend <-->|Real-time REST| DB2
-    Backend <-->|Local Sync| DB3
+    Backend <-->|Local Cache| DB3
 ```
 
 ---
