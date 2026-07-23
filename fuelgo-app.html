@@ -1050,13 +1050,9 @@ async function executeCustomerLogin() {
   } catch (err) {
     btn.disabled = false;
     btn.innerHTML = '<i class="fas fa-sign-in-alt" style="margin-right:8px;"></i> Sign In Now';
-    errorMsg.textContent = `Login Failed! ${err.message}. Please check your email/mobile and password.`;
-    errorBanner.style.display = 'block';
   }
 }
 
-async function executeGoogleAuthLogin() {
-  const errorBanner = document.getElementById('login-error-banner');
 function logoutCustomer() {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-login').classList.add('active');

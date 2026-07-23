@@ -1,9 +1,25 @@
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
 
-// Initialize the SQLite database
+// Initialize Database & Firebase Realtime Database Sync
 const dbFile = process.env.DB_FILE || 'fuelgo.db';
+const FIREBASE_DB_URL = process.env.FIREBASE_DB_URL || 'https://fuelgo-a8e7e-default-rtdb.firebaseio.com/';
 let db;
+
+// Firebase Realtime DB Helper (HTTP REST Sync)
+async function syncToFirebase(path, data) {
+  try {
+    const url = `${FIREBASE_DB_URL.replace(/\/$/, '')}/${path}.json`;
+    await fetch(url, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    console.log(`🔥 Firebase RTDB Synced: /${path}`);
+  } catch (err) {
+    console.log(`⚠️ Firebase Sync Note: ${err.message}`);
+  }
+}
 
 try {
   const { DatabaseSync } = require('node:sqlite');
@@ -138,4 +154,14 @@ if (checkPrices.count === 0) {
   console.log('Seeding complete.');
 }
 
+// Initial Sync to Firebase Realtime Database
+syncToFirebase('status', {
+  app: 'FuelGo',
+  database: 'Firebase Realtime DB + SQLite',
+  rtdb_url: FIREBASE_DB_URL,
+  last_online: new Date().toISOString()
+});
+
 module.exports = db;
+module.exports.syncToFirebase = syncToFirebase;
+module.exports.FIREBASE_DB_URL = FIREBASE_DB_URL;
