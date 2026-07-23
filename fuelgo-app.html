@@ -1105,11 +1105,11 @@ async function executeGoogleAuthLogin() {
 async function fallbackGoogleEmailPrompt() {
   const errorBanner = document.getElementById('login-error-banner');
   const errorMsg = document.getElementById('login-error-msg');
-  const userGoogleEmail = prompt("Google Sign-In: Enter your Google Mail address to authenticate:", "priya@example.com");
+  const userGoogleEmail = prompt("Enter your real Google Mail address (e.g. yourname@gmail.com):", "");
 
-  if (!userGoogleEmail) return;
+  if (!userGoogleEmail || !userGoogleEmail.trim()) return;
 
-  processGoogleUserLogin(userGoogleEmail, userGoogleEmail.split('@')[0]);
+  processGoogleUserLogin(userGoogleEmail.trim(), userGoogleEmail.split('@')[0]);
 }
 
 async function processGoogleUserLogin(email, name) {
