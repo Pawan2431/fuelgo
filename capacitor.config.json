@@ -1,0 +1,8 @@
+{
+  "appId": "com.fuelgo.app",
+  "appName": "FuelGo",
+  "webDir": "android/app/src/main/assets/www",
+  "server": {
+    "androidScheme": "https"
+  }
+}
