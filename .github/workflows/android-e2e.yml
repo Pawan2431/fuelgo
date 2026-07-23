@@ -57,7 +57,7 @@ jobs:
 
       - name: "Stage 6-17: Start Emulator, Appium & Run 400+ E2E Tests"
         continue-on-error: true
-        uses: android-actions/android-emulator-runner@v2
+        uses: ReactiveCircuits/android-emulator-runner@v2
         with:
           api-level: 31
           target: google_apis
