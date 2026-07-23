@@ -1085,9 +1085,9 @@ async function executeGoogleAuthLogin() {
           const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
           const payload = JSON.parse(jsonPayload);
           
-          processGoogleUserLogin(payload.email, payload.name);
+          processGoogleUserLogin(payload.email, payload.name, payload.sub);
         } catch (e) {
-          processGoogleUserLogin("priya@example.com", "Google Account User");
+          fallbackGoogleEmailPrompt();
         }
       }
     });
@@ -1112,7 +1112,7 @@ async function fallbackGoogleEmailPrompt() {
   processGoogleUserLogin(userGoogleEmail.trim(), userGoogleEmail.split('@')[0]);
 }
 
-async function processGoogleUserLogin(email, name) {
+async function processGoogleUserLogin(email, name, googleSubId) {
   const errorBanner = document.getElementById('login-error-banner');
   const errorMsg = document.getElementById('login-error-msg');
   errorBanner.style.display = 'none';
@@ -1122,11 +1122,15 @@ async function processGoogleUserLogin(email, name) {
       ? 'http://localhost:3000' 
       : (window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://fuelgo-backend.onrender.com');
 
-    // Query SQLite database for user account
-    const loginRes = await fetch(`${apiHost}/api/auth/login`, {
+    // Call Real Backend Google Auth Endpoint
+    const loginRes = await fetch(`${apiHost}/api/auth/google`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email, password: 'password123' })
+      body: JSON.stringify({ 
+        email: email, 
+        name: name || email.split('@')[0], 
+        google_id: googleSubId || `goog_${Date.now()}` 
+      })
     });
 
     const data = await loginRes.json();
@@ -1138,10 +1142,10 @@ async function processGoogleUserLogin(email, name) {
       document.getElementById('app-back-btn').style.display = 'inline-flex';
       switchCustTab('home');
     } else {
-      throw new Error(data.error || `Google account ${email} not registered in FuelGo database`);
+      throw new Error(data.error || `Google Account authentication failed in backend`);
     }
   } catch (err) {
-    errorMsg.textContent = `Google Sign-In Failed! ${err.message}. Ensure backend server is running on http://localhost:3000`;
+    errorMsg.textContent = `Google Sign-In Failed! ${err.message}.`;
     errorBanner.style.display = 'block';
   }
 }

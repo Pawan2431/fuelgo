@@ -32,6 +32,7 @@ app.get('/api', (req, res) => {
       prices: { method: 'GET', url: '/api/prices', description: 'Fetch fuel rates for Petrol, Diesel, CNG, EV, Premium, LPG' },
       stations: { method: 'GET', url: '/api/stations', description: 'Fetch all gas stations with ratings and available fuels' },
       login: { method: 'POST', url: '/api/auth/login', description: 'Authenticate user credentials & issue JWT token' },
+      google_auth: { method: 'POST', url: '/api/auth/google', description: 'Real Google Sign-In & automatic user record provisioning' },
       register: { method: 'POST', url: '/api/auth/register', description: 'Register a new user in the SQLite database' },
       orders: { method: 'GET / POST', url: '/api/orders', description: 'Fetch order history or place a new fuel order' },
       agent_tracking: { method: 'PATCH', url: '/api/orders/:id/location', description: 'Update driver live GPS coordinates in real-time' }

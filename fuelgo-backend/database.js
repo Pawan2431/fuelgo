@@ -27,8 +27,11 @@ db.exec(`
     email TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
     phone TEXT,
+    google_id TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+
+try { db.exec("ALTER TABLE users ADD COLUMN google_id TEXT"); } catch(e){}
 
   CREATE TABLE IF NOT EXISTS fuel_prices (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
