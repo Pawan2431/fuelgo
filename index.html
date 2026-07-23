@@ -1501,11 +1501,22 @@ footer {
       </div>
 
       <div class="form-group">
-        <label class="form-label">Delivery time</label>
-        <select class="form-select">
-          <option>ASAP — Within 30 minutes</option>
-          <option>Evening — 5:00 PM to 7:00 PM</option>
-          <option>Tomorrow Morning — 8:00 AM to 10:00 AM</option>
+        <label class="form-label">Station</label>
+        <select class="form-select" id="form-station">
+          <option value="1">Indian Oil (1.2 km away)</option>
+          <option value="2">BPCL (2.5 km away)</option>
+          <option value="3">HP (3.1 km away)</option>
+          <option value="4">Shell (4.5 km away)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Payment Method</label>
+        <select class="form-select" id="form-payment">
+          <option value="GPay">Google Pay (UPI)</option>
+          <option value="PhonePe">PhonePe / Paytm</option>
+          <option value="Card">Credit / Debit Card</option>
+          <option value="Cash">Cash on Delivery</option>
         </select>
       </div>
 
@@ -1516,9 +1527,10 @@ footer {
         <div class="form-total-val" id="form-total">₹2,059</div>
       </div>
 
-      <button class="btn-hero-primary" style="width:100%;justify-content:center;font-size:15px;" onclick="this.textContent='✓ Order Placed!';this.style.background='#2D8A5A';">
+      <button id="place-order-btn" class="btn-hero-primary" style="width:100%;justify-content:center;font-size:15px;" onclick="submitDatabaseOrder()">
         Place Order Now
       </button>
+      <div id="order-db-status" style="display:none;margin-top:12px;padding:10px;border-radius:8px;font-size:13px;text-align:center;"></div>
     </div>
 
     <div class="order-info reveal" style="animation-delay:0.2s;">
@@ -1777,6 +1789,66 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     }
   });
 });
+
+async function submitDatabaseOrder() {
+  const btn = document.getElementById('place-order-btn');
+  const statusDiv = document.getElementById('order-db-status');
+  btn.disabled = true;
+  btn.textContent = 'Processing in Database...';
+  statusDiv.style.display = 'block';
+  statusDiv.style.background = '#FFF3CD';
+  statusDiv.style.color = '#856404';
+  statusDiv.textContent = 'Connecting to FuelGo SQLite Database...';
+
+  try {
+    const apiHost = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://fuelgo-backend.onrender.com';
+    
+    // 1. Obtain Auth Token
+    const loginRes = await fetch(`${apiHost}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'test@fuelgo.com', password: 'password123' })
+    });
+    const loginData = await loginRes.json();
+    const token = loginData.token;
+
+    // 2. Insert Order Record into SQLite Database
+    const stationId = parseInt(document.getElementById('form-station').value) || 1;
+    const paymentMethod = document.getElementById('form-payment').value || 'GPay';
+
+    const orderRes = await fetch(`${apiHost}/api/orders`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        station_id: stationId,
+        fuel_type: formFuel.toLowerCase(),
+        quantity_litres: formQty,
+        payment_method: paymentMethod
+      })
+    });
+
+    const orderData = await orderRes.json();
+
+    if (orderRes.ok) {
+      btn.style.background = '#2D8A5A';
+      btn.textContent = '✓ Order Saved to Database!';
+      statusDiv.style.background = '#D4EDDA';
+      statusDiv.style.color = '#155724';
+      statusDiv.innerHTML = `<strong>Order #${orderData.order_id} Created in SQLite DB!</strong><br>Status: ${orderData.status.toUpperCase()} | ETA: ${orderData.eta_minutes} mins`;
+    } else {
+      throw new Error(orderData.error || 'Failed to record order');
+    }
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = 'Place Order Now';
+    statusDiv.style.background = '#F8D7DA';
+    statusDiv.style.color = '#721C24';
+    statusDiv.textContent = 'Database Connection Note: Served via SQLite API. ' + err.message;
+  }
+}
 
 /* ── Register Service Worker ── */
 if ('serviceWorker' in navigator) {

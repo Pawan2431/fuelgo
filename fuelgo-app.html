@@ -1100,8 +1100,35 @@ function closeConfirmModal() {
   document.getElementById('confirmModal').style.display = 'none';
 }
 
-function confirmAndTrackOrder() {
+async function confirmAndTrackOrder() {
   closeConfirmModal();
+  try {
+    const apiHost = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://fuelgo-backend.onrender.com';
+    const loginRes = await fetch(`${apiHost}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'priya@example.com', password: 'password123' })
+    });
+    const loginData = await loginRes.json();
+    
+    if (loginData.token) {
+      await fetch(`${apiHost}/api/orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${loginData.token}`
+        },
+        body: JSON.stringify({
+          station_id: 1,
+          fuel_type: custFuel.toLowerCase(),
+          quantity_litres: custQty,
+          payment_method: custPayment
+        })
+      });
+    }
+  } catch (err) {
+    console.log('Database note:', err);
+  }
   switchCustTab('track');
 }
 
