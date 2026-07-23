@@ -31,8 +31,6 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
-try { db.exec("ALTER TABLE users ADD COLUMN google_id TEXT"); } catch(e){}
-
   CREATE TABLE IF NOT EXISTS fuel_prices (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     fuel_type TEXT UNIQUE NOT NULL,
@@ -77,6 +75,10 @@ try { db.exec("ALTER TABLE users ADD COLUMN google_id TEXT"); } catch(e){}
     FOREIGN KEY(station_id) REFERENCES stations(id)
   );
 `);
+
+// Column Migrations
+try { db.exec("ALTER TABLE users ADD COLUMN google_id TEXT"); } catch(e){}
+try { db.exec("ALTER TABLE orders ADD COLUMN delivery_address TEXT"); } catch(e){}
 
 // Ensure column migrations if database exists
 try { db.exec("ALTER TABLE orders ADD COLUMN delivery_address TEXT"); } catch(e){}
