@@ -5,7 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>FuelGo Customer Mobile App — Chetipedu</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1A1208">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="FuelGo.png">
 
 <!-- LEAFLET MAPS CSS & JS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -1146,6 +1150,13 @@ function initTrackMap() {
 
   // Draw connecting route polyline
   L.polyline([[12.9780, 79.9380], [12.9760, 79.9360], [lat, lng]], {color: '#E8520A', weight: 4, dashArray: '8, 8'}).addTo(trackMapObj);
+}
+
+// Register PWA Service Worker for Mobile App Installation
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed:', err));
+  });
 }
 </script>
 </body>
