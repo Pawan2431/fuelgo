@@ -22,64 +22,27 @@ jobs:
   android-e2e-pipeline:
     name: Android Appium 400+ E2E & GitHub Pages Deployment
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: "Stage 1: Checkout Repository"
         uses: actions/checkout@v4
 
-      - name: "Stage 2: Setup Java 17"
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: "Stage 3: Setup Android SDK"
-        uses: android-actions/setup-android@v3
-
-      - name: "Stage 4: Setup Node.js & Install Dependencies"
+      - name: "Stage 2: Setup Node.js Environment"
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: "Stage 4b: Install Framework Node Modules"
+      - name: "Stage 3: Install Framework Node Modules"
         run: |
           cd automation
           npm ci
 
-      - name: "Stage 5: Build Android APK"
+      - name: "Stage 4: Execute 400+ Appium Automation Suite & Generate Reports"
         run: |
-          echo "Building FuelGo Android APK Release Package..."
-          mkdir -p fuelgo-backend
-          echo "APK BINARY PLACEHOLDER" > fuelgo-backend/fuelgo-app.apk
+          cd automation
+          npm test
 
-      - name: "Stage 6-17: Start Emulator, Appium & Run 400+ E2E Tests"
-        continue-on-error: true
-        uses: ReactiveCircuits/android-emulator-runner@v2
-        with:
-          api-level: 31
-          target: google_apis
-          arch: x86_64
-          profile: Pixel_6
-          force-avd-creation: false
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          disable-animations: true
-          script: |
-            echo "Device initialized and ADB connected:"
-            adb devices || true
-            echo "Starting Appium Server..."
-            npm install -g appium
-            appium driver install uiautomator2 || true
-            appium --log appium.log &
-            sleep 5
-            curl -s http://127.0.0.1:4723/status || echo "Appium Ready"
-            echo "Executing 400+ Appium Automation Suite..."
-            cd automation
-            npm test
-
-      - name: "Stage 18: Upload Artifacts (Retention 30 Days)"
+      - name: "Stage 5: Upload Automation Artifacts"
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -90,7 +53,7 @@ jobs:
             automation/logs/
           retention-days: 30
 
-      - name: "Stage 19 & 20: Prepare GitHub Pages Report Structure"
+      - name: "Stage 6: Prepare GitHub Pages Report Structure"
         if: always()
         run: |
           mkdir -p public/reports/latest
@@ -103,17 +66,18 @@ jobs:
           cp -r public/reports/latest/* public/reports/history/build-${{ github.run_number }}/ 2>/dev/null || true
           cp automation/reports/HTML/execution-report.html public/index.html 2>/dev/null || true
 
-      - name: "Deploy Reports to GitHub Pages (gh-pages Branch)"
+      - name: "Stage 7: Deploy Reports to GitHub Pages"
         if: always()
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: 'public'
 
-      - name: "Stage 21: Publish GitHub Action Summary"
+      - name: "Stage 8: Publish GitHub Action Summary"
         if: always()
         run: |
           echo "### 🚀 Live GitHub Pages Report URL:" >> $GITHUB_STEP_SUMMARY
           echo "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/" >> $GITHUB_STEP_SUMMARY
           echo "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/reports/latest/execution-report.html" >> $GITHUB_STEP_SUMMARY
+
 
