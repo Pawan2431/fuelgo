@@ -46,7 +46,7 @@ jobs:
           semgrep --config p/ci fuelgo-backend/ || true
 
       - name: Run Trivy Vulnerability Scanner
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@master
         continue-on-error: true
         with:
           scan-type: 'fs'
