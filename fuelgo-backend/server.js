@@ -21,6 +21,24 @@ app.use('/api/prices', pricesRoutes);
 app.use('/api/stations', stationsRoutes);
 app.use('/api/orders', ordersRoutes);
 
+// API Documentation & Status Route
+app.get('/api', (req, res) => {
+  res.json({
+    name: 'FuelGo Backend SQLite Database API',
+    version: '2.0.0',
+    status: 'ONLINE',
+    database: 'fuelgo.db (SQLite)',
+    endpoints: {
+      prices: { method: 'GET', url: '/api/prices', description: 'Fetch fuel rates for Petrol, Diesel, CNG, EV, Premium, LPG' },
+      stations: { method: 'GET', url: '/api/stations', description: 'Fetch all gas stations with ratings and available fuels' },
+      login: { method: 'POST', url: '/api/auth/login', description: 'Authenticate user credentials & issue JWT token' },
+      register: { method: 'POST', url: '/api/auth/register', description: 'Register a new user in the SQLite database' },
+      orders: { method: 'GET / POST', url: '/api/orders', description: 'Fetch order history or place a new fuel order' },
+      agent_tracking: { method: 'PATCH', url: '/api/orders/:id/location', description: 'Update driver live GPS coordinates in real-time' }
+    }
+  });
+});
+
 // Serve APK downloads & web app
 app.use('/download', express.static(__dirname));
 app.use(express.static(__dirname + '/..'));
