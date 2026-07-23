@@ -1,5 +1,5 @@
 -- ========================================================
--- FUELGO SUPABASE DATABASE SETUP SCRIPT
+-- FUELGO SUPABASE DATABASE SETUP SCRIPT (IDEMPOTENT / SAFE)
 -- Copy & Paste this entire script into your Supabase SQL Editor
 -- URL: https://supabase.com/dashboard/project/feshnblvfdhjvgehklvd/sql
 -- ========================================================
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS public.orders (
 );
 
 -- ========================================================
--- ENABLE ROW LEVEL SECURITY (RLS) & PUBLIC READ/WRITE ACCESS
+-- ENABLE ROW LEVEL SECURITY (RLS) & DROP/CREATE POLICIES SAFELY
 -- ========================================================
 
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
@@ -70,7 +70,13 @@ ALTER TABLE public.fuel_prices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.stations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 
--- Allow public and service role access for all tables
+-- Drop existing policies if present before recreating
+DROP POLICY IF EXISTS "Allow public read/write on users" ON public.users;
+DROP POLICY IF EXISTS "Allow public read/write on fuel_prices" ON public.fuel_prices;
+DROP POLICY IF EXISTS "Allow public read/write on stations" ON public.stations;
+DROP POLICY IF EXISTS "Allow public read/write on orders" ON public.orders;
+
+-- Create Policies
 CREATE POLICY "Allow public read/write on users" ON public.users FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow public read/write on fuel_prices" ON public.fuel_prices FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow public read/write on stations" ON public.stations FOR ALL USING (true) WITH CHECK (true);
@@ -80,7 +86,6 @@ CREATE POLICY "Allow public read/write on orders" ON public.orders FOR ALL USING
 -- SEED INITIAL FUELGO DATA
 -- ========================================================
 
--- Seed Fuel Prices
 INSERT INTO public.fuel_prices (fuel_type, price_per_unit, unit, change_pct) VALUES
   ('petrol', 94.72, 'L', 0.15),
   ('diesel', 87.62, 'L', -0.05),
@@ -90,7 +95,6 @@ INSERT INTO public.fuel_prices (fuel_type, price_per_unit, unit, change_pct) VAL
   ('lpg', 68.00, 'kg', 0.00)
 ON CONFLICT (fuel_type) DO UPDATE SET price_per_unit = EXCLUDED.price_per_unit;
 
--- Seed Stations in Chennai
 INSERT INTO public.stations (name, emoji, city, lat, lng, rating, is_open, fuels_available, distance_km) VALUES
   ('Indian Oil', '⛽', 'Chennai', 13.0827, 80.2707, 4.9, true, '["petrol", "diesel"]'::jsonb, 1.2),
   ('BPCL', '🔵', 'Chennai', 13.0850, 80.2750, 4.8, true, '["petrol", "diesel"]'::jsonb, 2.5),
@@ -100,7 +104,6 @@ INSERT INTO public.stations (name, emoji, city, lat, lng, rating, is_open, fuels
   ('Adani Gas', '🟡', 'Chennai', 13.0860, 80.2780, 4.5, true, '["cng"]'::jsonb, 3.5)
 ON CONFLICT DO NOTHING;
 
--- Seed Sample Customer
 INSERT INTO public.users (name, email, password_hash, phone) VALUES
   ('Priya Sharma', 'priya@example.com', '$2a$10$wO8l3q1F/yX0c.X0b1u3d.2v8Q2O5V3b5X7Y9Z1A3B5C7D9E1F3G5', '9876543210')
 ON CONFLICT (email) DO NOTHING;
