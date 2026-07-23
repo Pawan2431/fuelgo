@@ -6,7 +6,7 @@ const router = express.Router();
 
 // Place a new order
 router.post('/', verifyToken, (req, res) => {
-  const { station_id, fuel_type, quantity_litres, payment_method } = req.body;
+  const { station_id, fuel_type, quantity_litres, payment_method, delivery_address, delivery_lat, delivery_lng } = req.body;
   const user_id = req.user.id;
 
   if (!station_id || !fuel_type || !quantity_litres || !payment_method) {
@@ -26,27 +26,58 @@ router.post('/', verifyToken, (req, res) => {
       return res.status(400).json({ error: 'Invalid fuel type: ' + fuel_type });
     }
 
-    // 3. Calculate total
+    // 3. Calculate total & tracking defaults
     const total_price = fuel.price_per_unit * quantity_litres;
-    const eta_minutes = Math.floor(Math.random() * (30 - 15 + 1)) + 15; // Random ETA between 15-30 mins
+    const eta_minutes = Math.floor(Math.random() * (30 - 15 + 1)) + 15;
+    const address = delivery_address || 'Chetipedu, Tamil Nadu — 602105';
+    const lat = delivery_lat || 12.9734;
+    const lng = delivery_lng || 79.9328;
 
-    // 4. Insert Order
+    // 4. Insert Order into SQLite Database
     const insertOrder = db.prepare(`
-      INSERT INTO orders (user_id, station_id, fuel_type, quantity_litres, total_price, payment_method, eta_minutes) 
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO orders (
+        user_id, station_id, fuel_type, quantity_litres, total_price, payment_method,
+        delivery_address, delivery_lat, delivery_lng, agent_name, agent_phone, agent_lat, agent_lng, eta_minutes
+      ) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Ravi Kumar', '9876500402', 12.9760, 79.9360, ?)
     `);
     
-    const info = insertOrder.run(user_id, station_id, fuel_type, quantity_litres, total_price, payment_method, eta_minutes);
+    const info = insertOrder.run(user_id, station_id, fuel_type, quantity_litres, total_price, payment_method, address, lat, lng, eta_minutes);
 
     res.json({
       order_id: info.lastInsertRowid,
       total_price,
       eta_minutes,
-      status: 'confirmed'
+      status: 'confirmed',
+      delivery_address: address,
+      delivery_location: { lat, lng },
+      agent: {
+        name: 'Ravi Kumar',
+        phone: '9876500402',
+        location: { lat: 12.9760, lng: 79.9360 }
+      }
     });
 
   } catch (error) {
+    console.error('Order error:', error);
     res.status(500).json({ error: 'Database error while placing order.' });
+  }
+});
+
+// Update agent tracking location for active order
+router.patch('/:id/location', verifyToken, (req, res) => {
+  const { agent_lat, agent_lng, eta_minutes } = req.body;
+  try {
+    const update = db.prepare('UPDATE orders SET agent_lat = ?, agent_lng = ?, eta_minutes = COALESCE(?, eta_minutes) WHERE id = ?');
+    const result = update.run(agent_lat, agent_lng, eta_minutes, req.params.id);
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Order not found.' });
+    }
+
+    res.json({ success: true, message: 'Agent tracking location updated in database.' });
+  } catch (error) {
+    res.status(500).json({ error: 'Database error updating tracking location.' });
   }
 });
 

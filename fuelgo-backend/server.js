@@ -21,6 +21,10 @@ app.use('/api/prices', pricesRoutes);
 app.use('/api/stations', stationsRoutes);
 app.use('/api/orders', ordersRoutes);
 
+// Serve APK downloads & web app
+app.use('/download', express.static(__dirname));
+app.use(express.static(__dirname + '/..'));
+
 // Global Error Handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -39,6 +43,7 @@ app.listen(PORT, () => {
   console.log(`[GET]  /api/orders`);
   console.log(`[GET]  /api/orders/:id`);
   console.log(`[PATCH] /api/orders/:id/status`);
+  console.log(`[PATCH] /api/orders/:id/location`);
   console.log(`-------------------------`);
   console.log(`FuelGo API running on http://localhost:${PORT}`);
 });

@@ -60,6 +60,13 @@ db.exec(`
     quantity_litres REAL NOT NULL,
     total_price REAL NOT NULL,
     payment_method TEXT NOT NULL,
+    delivery_address TEXT,
+    delivery_lat REAL DEFAULT 12.9734,
+    delivery_lng REAL DEFAULT 79.9328,
+    agent_name TEXT DEFAULT 'Ravi Kumar',
+    agent_phone TEXT DEFAULT '9876500402',
+    agent_lat REAL DEFAULT 12.9760,
+    agent_lng REAL DEFAULT 79.9360,
     status TEXT DEFAULT 'confirmed',
     eta_minutes INTEGER,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -67,6 +74,15 @@ db.exec(`
     FOREIGN KEY(station_id) REFERENCES stations(id)
   );
 `);
+
+// Ensure column migrations if database exists
+try { db.exec("ALTER TABLE orders ADD COLUMN delivery_address TEXT"); } catch(e){}
+try { db.exec("ALTER TABLE orders ADD COLUMN delivery_lat REAL DEFAULT 12.9734"); } catch(e){}
+try { db.exec("ALTER TABLE orders ADD COLUMN delivery_lng REAL DEFAULT 79.9328"); } catch(e){}
+try { db.exec("ALTER TABLE orders ADD COLUMN agent_name TEXT DEFAULT 'Ravi Kumar'"); } catch(e){}
+try { db.exec("ALTER TABLE orders ADD COLUMN agent_phone TEXT DEFAULT '9876500402'"); } catch(e){}
+try { db.exec("ALTER TABLE orders ADD COLUMN agent_lat REAL DEFAULT 12.9760"); } catch(e){}
+try { db.exec("ALTER TABLE orders ADD COLUMN agent_lng REAL DEFAULT 79.9360"); } catch(e){}
 
 // Check if seeding is needed
 const checkPrices = db.prepare('SELECT COUNT(*) as count FROM fuel_prices').get();
