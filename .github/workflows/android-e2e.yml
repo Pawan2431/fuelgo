@@ -57,7 +57,7 @@ jobs:
 
       - name: "Stage 6 & 7: Start & Verify Android Emulator"
         continue-on-error: true
-        uses: android-actions/android-emulator-runner@v4
+        uses: reactivecircuits/android-emulator-runner@v2
         with:
           api-level: 31
           target: google_apis
