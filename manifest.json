@@ -3,7 +3,7 @@
   "name": "FuelGo — On Demand Fuel Delivery",
   "short_name": "FuelGo",
   "description": "On-demand fuel delivery app for Chetipedu, Tamil Nadu. Order Petrol, Diesel, Premium & LPG directly to your location.",
-  "start_url": "fuelgo-app.html",
+  "start_url": "./fuelgo-app.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#FDF8F2",
