@@ -625,12 +625,16 @@ html, body {
         <div class="login-sub">Customer Mobile Account Login</div>
       </div>
 
+      <div class="demo-creds" style="background:#FFF3CD;color:#856404;border:1px solid #FFEEBA;padding:10px 14px;border-radius:10px;margin-bottom:14px;font-size:12px;text-align:center;">
+        <strong>Demo Login:</strong> Mobile <code>9876543210</code> · Password <code>password123</code>
+      </div>
+
       <div class="form-card">
         <div class="field-group">
           <label class="field-label">Mobile Number / Email</label>
           <div class="input-wrapper">
             <i class="fas fa-mobile-alt input-icon"></i>
-            <input type="text" class="input-box" id="login-username" placeholder="Enter mobile or email...">
+            <input type="text" class="input-box" id="login-username" value="9876543210">
           </div>
         </div>
 
@@ -638,7 +642,7 @@ html, body {
           <label class="field-label">Password</label>
           <div class="input-wrapper">
             <i class="fas fa-lock input-icon"></i>
-            <input type="password" class="input-box" id="login-password" placeholder="Enter your password...">
+            <input type="password" class="input-box" id="login-password" value="password123">
             <i class="fas fa-eye toggle-pwd" onclick="togglePasswordVisibility()"></i>
           </div>
         </div>
