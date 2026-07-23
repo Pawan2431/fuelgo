@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>FuelGo — Mobile Application</title>
+<title>FuelGo Mobile App</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
@@ -19,6 +19,7 @@
   --card: #FFFFFF;
   --muted: #8A7B68;
   --green: #2D8A5A;
+  --red: #D32F2F;
   --border: rgba(0,0,0,0.08);
   --font-head: 'Syne', sans-serif;
   --font-body: 'DM Sans', sans-serif;
@@ -33,7 +34,7 @@ html, body {
   overflow-x: hidden;
 }
 
-/* ── MOBILE CONTAINER SCENARIO ── */
+/* ── MOBILE CONTAINER ── */
 .app-viewport {
   max-width: 480px;
   min-height: 100vh;
@@ -43,11 +44,11 @@ html, body {
   box-shadow: 0 0 50px rgba(0,0,0,0.5);
   display: flex;
   flex-direction: column;
-  padding-bottom: 80px;
+  padding-bottom: 70px;
 }
 
-/* ── HEADER ── */
-header {
+/* ── APP HEADER ── */
+.app-header {
   position: sticky;
   top: 0;
   z-index: 100;
@@ -60,40 +61,33 @@ header {
   border-bottom: 0.5px solid rgba(255,255,255,0.08);
 }
 
-.header-brand {
+.brand-link {
   display: flex;
   align-items: center;
   gap: 10px;
   text-decoration: none;
 }
 
-.header-brand img {
-  height: 34px;
+.brand-link img {
+  height: 32px;
   width: auto;
   object-fit: contain;
-  border-radius: 6px;
 }
 
-.header-logo {
+.brand-logo {
   font-family: var(--font-head);
   font-weight: 800;
-  font-size: 22px;
+  font-size: 20px;
   color: white;
   letter-spacing: -0.5px;
 }
-.header-logo span { color: var(--orange); }
+.brand-logo span { color: var(--orange); }
 
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.btn-header-emergency {
+.sos-badge-btn {
   background: var(--orange);
   color: white;
   border: none;
-  padding: 6px 12px;
+  padding: 6px 14px;
   border-radius: 20px;
   font-family: var(--font-head);
   font-size: 11px;
@@ -101,165 +95,166 @@ header {
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  transition: transform 0.15s;
+}
+.sos-badge-btn:active { transform: scale(0.95); }
+
+/* ── SCREEN NAVIGATION VIEWS ── */
+.screen {
+  display: none;
+  animation: fadeIn 0.25s ease-out forwards;
+}
+.screen.active {
+  display: block;
 }
 
-/* ── HERO BANNER ── */
-.app-hero {
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── HOME SCREEN ── */
+.home-banner {
   background: var(--deep);
   color: white;
-  padding: 30px 20px 40px;
+  padding: 24px 20px 30px;
   position: relative;
-  overflow: hidden;
 }
 
-.app-hero-badge {
-  display: inline-flex;
+.user-greeting {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 6px;
-  background: rgba(232,82,10,0.15);
-  border: 0.5px solid rgba(232,82,10,0.3);
-  border-radius: 20px;
-  padding: 4px 12px;
-  font-size: 11px;
-  color: var(--orange);
-  font-weight: 600;
   margin-bottom: 16px;
 }
 
-.app-hero-h1 {
-  font-family: var(--font-head);
-  font-weight: 800;
-  font-size: 32px;
-  line-height: 1.1;
-  letter-spacing: -1px;
-  margin-bottom: 12px;
-}
-.app-hero-h1 span { color: var(--orange); }
-
-.app-hero-sub {
-  font-size: 14px;
+.greeting-text {
+  font-size: 13px;
   color: rgba(255,255,255,0.6);
-  line-height: 1.5;
-  margin-bottom: 24px;
+}
+.greeting-name {
+  font-family: var(--font-head);
+  font-size: 22px;
+  font-weight: 800;
+  color: white;
 }
 
-/* ── DASHBOARD CARD ── */
-.dash-card {
+.location-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.08);
+  border: 0.5px solid rgba(255,255,255,0.12);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.8);
+}
+
+.live-card {
   background: rgba(255,255,255,0.05);
   border: 0.5px solid rgba(255,255,255,0.1);
   border-radius: 18px;
   padding: 16px;
-  backdrop-filter: blur(10px);
+  margin-top: 14px;
 }
 
-.dash-header {
+.live-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
-.dash-title {
-  font-family: var(--font-head);
-  font-size: 13px;
-  font-weight: 700;
-  color: white;
-}
+.live-title { font-family: var(--font-head); font-size: 13px; font-weight: 700; color: white; }
+.live-tag { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #4AE88A; font-weight: 600; }
+.live-dot { width: 6px; height: 6px; border-radius: 50%; background: #4AE88A; animation: blink 1.5s infinite; }
 
-.dash-live {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  color: #4AE88A;
-  font-weight: 600;
-}
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-.dash-live-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: #4AE88A;
-  animation: blink 1.5s infinite;
-}
-
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
-}
-
-.dash-stats {
+.stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  margin-bottom: 14px;
 }
 
-.dash-stat {
+.stat-box {
   background: rgba(255,255,255,0.06);
   border-radius: 12px;
-  padding: 12px 8px;
+  padding: 10px 8px;
   text-align: center;
 }
 
-.dash-stat-val {
-  font-family: var(--font-head);
-  font-weight: 800;
-  font-size: 18px;
+.stat-val { font-family: var(--font-head); font-weight: 800; font-size: 17px; color: white; }
+.stat-lbl { font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+
+.section-padding { padding: 20px; }
+.sec-title { font-family: var(--font-head); font-weight: 800; font-size: 18px; color: var(--deep); margin-bottom: 12px; }
+
+.quick-fuels {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.quick-fuel-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 6px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s;
+}
+.quick-fuel-card:hover, .quick-fuel-card:active {
+  border-color: var(--orange);
+  transform: translateY(-2px);
+}
+
+.quick-icon { font-size: 22px; margin-bottom: 4px; display: block; }
+.quick-name { font-family: var(--font-head); font-weight: 700; font-size: 12px; color: var(--deep); }
+.quick-price { font-size: 10px; color: var(--muted); }
+
+.promo-card {
+  background: var(--deep);
   color: white;
+  border-radius: 18px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 20px;
 }
 
-.dash-stat-lbl {
-  font-size: 10px;
-  color: rgba(255,255,255,0.4);
-  margin-top: 2px;
-}
-
-/* ── ORDER SECTION ── */
-.app-section {
-  padding: 24px 20px;
-}
-
-.section-label {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  color: var(--orange);
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-
-.section-title {
+.promo-tag {
+  background: var(--orange);
+  color: white;
   font-family: var(--font-head);
-  font-weight: 800;
-  font-size: 24px;
-  color: var(--deep);
-  letter-spacing: -0.5px;
-  margin-bottom: 16px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 12px;
+  display: inline-block;
+  margin-bottom: 8px;
 }
 
-/* ── ORDER FORM ── */
-.order-box {
+.promo-title { font-family: var(--font-head); font-weight: 800; font-size: 18px; margin-bottom: 4px; }
+.promo-sub { font-size: 12px; color: rgba(255,255,255,0.6); }
+
+/* ── ORDER SCREEN ── */
+.order-card {
   background: white;
   border-radius: 20px;
-  border: 0.5px solid var(--border);
+  border: 1px solid var(--border);
   padding: 20px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.03);
 }
 
-.form-group { margin-bottom: 16px; }
+.field-group { margin-bottom: 16px; }
+.field-label { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px; display: block; }
 
-.form-label {
-  display: block;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--muted);
-  letter-spacing: 0.5px;
-  margin-bottom: 6px;
-  text-transform: uppercase;
-}
-
-.form-input, .form-select {
+.input-box, .select-box {
   width: 100%;
   padding: 12px 14px;
   border-radius: 12px;
@@ -271,30 +266,30 @@ header {
   outline: none;
 }
 
-.fuel-selector {
+.fuel-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 6px;
 }
 
-.fuel-opt {
+.fuel-btn {
   border-radius: 12px;
   border: 1.5px solid var(--border);
-  padding: 8px 4px;
+  padding: 10px 4px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.15s;
   background: white;
+  transition: all 0.15s;
 }
 
-.fuel-opt.active {
+.fuel-btn.active {
   border-color: var(--orange);
   background: #FFF6F0;
 }
 
-.fuel-opt-icon { font-size: 20px; display: block; margin-bottom: 2px; }
-.fuel-opt-name { font-size: 11px; font-weight: 700; color: var(--deep); }
-.fuel-opt-price { font-size: 10px; color: var(--muted); }
+.fuel-btn-icon { font-size: 20px; display: block; margin-bottom: 2px; }
+.fuel-btn-name { font-family: var(--font-head); font-weight: 700; font-size: 11px; color: var(--deep); }
+.fuel-btn-price { font-size: 10px; color: var(--muted); }
 
 .qty-row {
   display: flex;
@@ -303,7 +298,7 @@ header {
 }
 
 .qty-btn {
-  width: 38px; height: 38px;
+  width: 40px; height: 40px;
   border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--surface);
@@ -323,9 +318,9 @@ header {
   text-align: center;
 }
 
-.total-banner {
+.summary-banner {
   background: var(--deep);
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 14px 16px;
   display: flex;
   justify-content: space-between;
@@ -334,13 +329,13 @@ header {
   color: white;
 }
 
-.total-lbl { font-size: 12px; color: rgba(255,255,255,0.5); }
-.total-val { font-family: var(--font-head); font-weight: 800; font-size: 20px; color: white; }
+.summary-lbl { font-size: 12px; color: rgba(255,255,255,0.5); }
+.summary-price { font-family: var(--font-head); font-weight: 800; font-size: 20px; color: white; }
 
-.btn-primary {
+.btn-app-primary {
   width: 100%;
   padding: 15px;
-  border-radius: 12px;
+  border-radius: 14px;
   border: none;
   background: var(--orange);
   color: white;
@@ -348,54 +343,148 @@ header {
   font-weight: 700;
   font-size: 15px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, transform 0.15s;
 }
-.btn-primary:hover { background: var(--orange2); }
+.btn-app-primary:hover { background: var(--orange2); }
+.btn-app-primary:active { transform: scale(0.98); }
 
-/* ── FEATURES GRID ── */
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-top: 14px;
+/* ── TRACK SCREEN ── */
+.track-map-sim {
+  background: #E8F0FE;
+  border-radius: 20px;
+  height: 220px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.feat-card {
+.track-map-bg {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(var(--muted) 1px, transparent 1px);
+  background-size: 20px 20px;
+  opacity: 0.15;
+}
+
+.driver-marker {
+  position: absolute;
+  background: var(--orange);
+  color: white;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-family: var(--font-head);
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(232,82,10,0.4);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  animation: floatMarker 4s ease-in-out infinite;
+}
+
+@keyframes floatMarker { 0%, 100% { transform: translate(-10px, -5px); } 50% { transform: translate(10px, 5px); } }
+
+.track-status-card {
+  background: white;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  padding: 18px;
+}
+
+.driver-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.driver-avatar {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: var(--orange);
+  color: white;
+  font-family: var(--font-head);
+  font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+
+.driver-name { font-family: var(--font-head); font-weight: 700; font-size: 15px; }
+.driver-sub { font-size: 12px; color: var(--muted); }
+
+/* ── HISTORY SCREEN ── */
+.history-item {
   background: white;
   border-radius: 16px;
-  border: 0.5px solid var(--border);
+  border: 1px solid var(--border);
   padding: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.feat-card.emergency {
-  background: var(--deep);
-  color: white;
-  grid-column: span 2;
-}
-
-.feat-icon {
+.hist-icon {
   width: 40px; height: 40px;
   border-radius: 12px;
+  background: #FFF6F0;
   display: flex; align-items: center; justify-content: center;
   font-size: 20px;
-  margin-bottom: 12px;
 }
 
-.feat-title {
+.hist-title { font-family: var(--font-head); font-weight: 700; font-size: 14px; }
+.hist-date { font-size: 11px; color: var(--muted); }
+.hist-price { font-family: var(--font-head); font-weight: 800; font-size: 15px; color: var(--deep); }
+
+/* ── PROFILE SCREEN ── */
+.profile-header {
+  text-align: center;
+  padding: 20px;
+  background: white;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+
+.avatar-large {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: var(--orange);
+  color: white;
   font-family: var(--font-head);
-  font-weight: 700;
-  font-size: 15px;
-  margin-bottom: 4px;
+  font-weight: 800;
+  font-size: 24px;
+  margin: 0 auto 10px;
+  display: flex; align-items: center; justify-content: center;
 }
 
-.feat-desc {
-  font-size: 12px;
-  color: var(--muted);
-  line-height: 1.5;
+.profile-menu {
+  background: white;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  overflow: hidden;
 }
-.feat-card.emergency .feat-desc { color: rgba(255,255,255,0.5); }
 
-/* ── BOTTOM NAV ── */
+.menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.menu-item:last-child { border-bottom: none; }
+.menu-item i { color: var(--muted); }
+
+/* ── BOTTOM TAB NAVIGATION BAR ── */
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -413,7 +502,7 @@ header {
   z-index: 200;
 }
 
-.nav-item {
+.tab-item {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -424,211 +513,401 @@ header {
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
+  transition: color 0.15s;
 }
 
-.nav-item i { font-size: 18px; }
-.nav-item.active { color: var(--orange); }
+.tab-item i { font-size: 18px; }
+.tab-item.active { color: var(--orange); }
+
+/* ── MODAL SOS OVERLAY ── */
+.sos-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  z-index: 300;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.sos-modal {
+  background: white;
+  border-radius: 24px;
+  padding: 24px;
+  max-width: 360px;
+  width: 100%;
+  text-align: center;
+}
+
+.sos-icon { font-size: 48px; margin-bottom: 12px; }
+.sos-title { font-family: var(--font-head); font-weight: 800; font-size: 20px; color: var(--deep); margin-bottom: 6px; }
+.sos-desc { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
 </style>
 </head>
 <body>
 
 <div class="app-viewport">
   <!-- ── HEADER ── -->
-  <header>
-    <a href="#" class="header-brand">
+  <header class="app-header">
+    <a href="#" class="brand-link">
       <img src="FuelGo.png" alt="FuelGo Logo">
-      <span class="header-logo">Fuel<span>Go</span></span>
+      <span class="brand-logo">Fuel<span>Go</span></span>
     </a>
-    <div class="header-right">
-      <button class="btn-header-emergency" onclick="triggerEmergency()">
-        ⚡ SOS
-      </button>
-    </div>
+    <button class="sos-badge-btn" onclick="openSOSModal()">
+      ⚡ SOS Dispatch
+    </button>
   </header>
 
-  <!-- ── HERO HERO ── -->
-  <div class="app-hero">
-    <div class="app-hero-badge">⚡ 30-min SLA Guaranteed Delivery</div>
-    <h1 class="app-hero-h1">Fuel delivered<br><span>to your door.</span></h1>
-    <p class="app-hero-sub">Order petrol, diesel, premium or LPG directly to your vehicle anywhere in Chennai.</p>
-
-    <!-- LIVE DASHBOARD -->
-    <div class="dash-card">
-      <div class="dash-header">
-        <div class="dash-title">Live Order Status</div>
-        <div class="dash-live"><div class="dash-live-dot"></div> 3 active orders</div>
-      </div>
-      <div class="dash-stats">
-        <div class="dash-stat">
-          <div class="dash-stat-val">₹2,059</div>
-          <div class="dash-stat-lbl">Spend</div>
-        </div>
-        <div class="dash-stat">
-          <div class="dash-stat-val">340L</div>
-          <div class="dash-stat-lbl">Delivered</div>
-        </div>
-        <div class="dash-stat">
-          <div class="dash-stat-val">1,240</div>
-          <div class="dash-stat-lbl">Points</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── ORDER SECTION ── -->
-  <div class="app-section">
-    <div class="section-label">Instant Fuel Dispatch</div>
-    <div class="section-title">Place Fuel Order</div>
-
-    <div class="order-box">
-      <div class="form-group">
-        <label class="form-label">Delivery Location</label>
-        <input type="text" class="form-input" value="Anna Nagar, Chennai — 600040">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Fuel Type</label>
-        <div class="fuel-selector">
-          <div class="fuel-opt active" onclick="selectAppFuel(this, 'Petrol', 101.5)">
-            <span class="fuel-opt-icon">⛽</span>
-            <div class="fuel-opt-name">Petrol</div>
-            <div class="fuel-opt-price">₹101.5</div>
-          </div>
-          <div class="fuel-opt" onclick="selectAppFuel(this, 'Diesel', 89.2)">
-            <span class="fuel-opt-icon">🛢️</span>
-            <div class="fuel-opt-name">Diesel</div>
-            <div class="fuel-opt-price">₹89.2</div>
-          </div>
-          <div class="fuel-opt" onclick="selectAppFuel(this, 'Premium', 112)">
-            <span class="fuel-opt-icon">✨</span>
-            <div class="fuel-opt-name">Premium</div>
-            <div class="fuel-opt-price">₹112</div>
-          </div>
-          <div class="fuel-opt" onclick="selectAppFuel(this, 'LPG', 68)">
-            <span class="fuel-opt-icon">💨</span>
-            <div class="fuel-opt-name">LPG</div>
-            <div class="fuel-opt-price">₹68</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Quantity (Litres)</label>
-        <div class="qty-row">
-          <button class="qty-btn" onclick="changeAppQty(-5)">−</button>
-          <div class="qty-val" id="app-qty">20</div>
-          <button class="qty-btn" onclick="changeAppQty(5)">+</button>
-          <span style="font-size:12px;color:var(--muted);">Litres</span>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Delivery Schedule</label>
-        <select class="form-select">
-          <option>ASAP — Under 30 minutes</option>
-          <option>Evening — 5:00 PM to 7:00 PM</option>
-          <option>Tomorrow — 8:00 AM to 10:00 AM</option>
-        </select>
-      </div>
-
-      <div class="total-banner">
+  <!-- ── 1. HOME SCREEN ── -->
+  <div id="screen-home" class="screen active">
+    <div class="home-banner">
+      <div class="user-greeting">
         <div>
-          <div class="total-lbl" id="app-summary">Petrol × 20L + ₹29 fee</div>
+          <div class="greeting-text">Welcome back,</div>
+          <div class="greeting-name">Pawan Teja</div>
         </div>
-        <div class="total-val" id="app-total-price">₹2,059</div>
+        <div class="location-pill">
+          📍 Anna Nagar, Chennai
+        </div>
       </div>
 
-      <button class="btn-primary" onclick="confirmAppOrder(this)">
-        Confirm & Order Fuel
-      </button>
+      <!-- LIVE DASHBOARD CARD -->
+      <div class="live-card">
+        <div class="live-card-header">
+          <div class="live-title">Live Account Dashboard</div>
+          <div class="live-tag"><div class="live-dot"></div> 3 active orders</div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div class="stat-val">₹2,059</div>
+            <div class="stat-lbl">Today's Spend</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val">340L</div>
+            <div class="stat-lbl">Delivered</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val">1,240</div>
+            <div class="stat-lbl">Points</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-padding">
+      <div class="sec-title">Quick Fuel Selection</div>
+      <div class="quick-fuels">
+        <div class="quick-fuel-card" onclick="quickSelectFuel('Petrol', 101.5)">
+          <span class="quick-icon">⛽</span>
+          <div class="quick-name">Petrol</div>
+          <div class="quick-price">₹101.5/L</div>
+        </div>
+        <div class="quick-fuel-card" onclick="quickSelectFuel('Diesel', 89.2)">
+          <span class="quick-icon">🛢️</span>
+          <div class="quick-name">Diesel</div>
+          <div class="quick-price">₹89.2/L</div>
+        </div>
+        <div class="quick-fuel-card" onclick="quickSelectFuel('Premium', 112)">
+          <span class="quick-icon">✨</span>
+          <div class="quick-name">Premium</div>
+          <div class="quick-price">₹112/L</div>
+        </div>
+        <div class="quick-fuel-card" onclick="quickSelectFuel('LPG', 68)">
+          <span class="quick-icon">💨</span>
+          <div class="quick-name">LPG</div>
+          <div class="quick-price">₹68/L</div>
+        </div>
+      </div>
+
+      <div class="promo-card">
+        <div class="promo-tag">NEW OFFER</div>
+        <div class="promo-title">First Delivery FREE</div>
+        <div class="promo-sub">Use promo code FUELFREE on orders over 15 Litres.</div>
+      </div>
     </div>
   </div>
 
-  <!-- ── FEATURES ── -->
-  <div class="app-section" style="padding-top:0;">
-    <div class="section-label">Category Features</div>
-    <div class="section-title">Built For Mobility</div>
+  <!-- ── 2. ORDER SCREEN ── -->
+  <div id="screen-order" class="screen">
+    <div class="section-padding">
+      <div class="sec-title">Create Fuel Order</div>
 
-    <div class="features-grid">
-      <div class="feat-card emergency">
-        <div class="feat-icon" style="background:rgba(232,82,10,0.2);">⚡</div>
-        <div class="feat-title">Emergency SOS Mode</div>
-        <div class="feat-desc">Stranded with an empty tank? Priority dispatch arrives under 20 minutes guaranteed.</div>
-      </div>
-      <div class="feat-card">
-        <div class="feat-icon" style="background:#FFF0E8;">📍</div>
-        <div class="feat-title">Live Tracking</div>
-        <div class="feat-desc">Track agent location in real-time.</div>
-      </div>
-      <div class="feat-card">
-        <div class="feat-icon" style="background:#EDF7F1;">🛡️</div>
-        <div class="feat-title">BIS Certified</div>
-        <div class="feat-desc">Verified fire-safe agents.</div>
+      <div class="order-card">
+        <div class="field-group">
+          <label class="field-label">Delivery Address</label>
+          <input type="text" class="input-box" value="Anna Nagar, Chennai — 600040">
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Select Fuel Type</label>
+          <div class="fuel-grid">
+            <div class="fuel-btn active" onclick="chooseFuel(this, 'Petrol', 101.5)">
+              <span class="fuel-btn-icon">⛽</span>
+              <div class="fuel-btn-name">Petrol</div>
+              <div class="fuel-btn-price">₹101.5</div>
+            </div>
+            <div class="fuel-btn" onclick="chooseFuel(this, 'Diesel', 89.2)">
+              <span class="fuel-btn-icon">🛢️</span>
+              <div class="fuel-btn-name">Diesel</div>
+              <div class="fuel-btn-price">₹89.2</div>
+            </div>
+            <div class="fuel-btn" onclick="chooseFuel(this, 'Premium', 112)">
+              <span class="fuel-btn-icon">✨</span>
+              <div class="fuel-btn-name">Premium</div>
+              <div class="fuel-btn-price">₹112</div>
+            </div>
+            <div class="fuel-btn" onclick="chooseFuel(this, 'LPG', 68)">
+              <span class="fuel-btn-icon">💨</span>
+              <div class="fuel-btn-name">LPG</div>
+              <div class="fuel-btn-price">₹68</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Quantity (Litres)</label>
+          <div class="qty-row">
+            <button class="qty-btn" onclick="stepQty(-5)">−</button>
+            <div class="qty-val" id="order-qty-disp">20</div>
+            <button class="qty-btn" onclick="stepQty(5)">+</button>
+            <span style="font-size:12px;color:var(--muted);">Litres</span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Time Slot</label>
+          <select class="select-box">
+            <option>ASAP — Within 30 Minutes</option>
+            <option>Evening — 5:00 PM to 7:00 PM</option>
+            <option>Tomorrow Morning — 8:00 AM to 10:00 AM</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Payment Method</label>
+          <select class="select-box">
+            <option>UPI / GPay / PhonePe</option>
+            <option>Credit / Debit Card</option>
+            <option>FuelGo Wallet Balance</option>
+            <option>Cash on Delivery</option>
+          </select>
+        </div>
+
+        <div class="summary-banner">
+          <div>
+            <div class="summary-lbl" id="order-summary-txt">Petrol × 20L + ₹29 fee</div>
+          </div>
+          <div class="summary-price" id="order-total-price">₹2,059</div>
+        </div>
+
+        <button class="btn-app-primary" onclick="submitAppOrder()">
+          Place Fuel Order Now
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- ── BOTTOM NAVIGATION ── -->
+  <!-- ── 3. TRACK SCREEN ── -->
+  <div id="screen-track" class="screen">
+    <div class="section-padding">
+      <div class="sec-title">Live GPS Tracking</div>
+
+      <div class="track-map-sim">
+        <div class="track-map-bg"></div>
+        <div class="driver-marker">
+          🛵 Ravi Kumar (ETA: 18 min)
+        </div>
+      </div>
+
+      <div class="track-status-card">
+        <div class="driver-row">
+          <div class="driver-avatar">RK</div>
+          <div>
+            <div class="driver-name">Ravi Kumar (Agent #402)</div>
+            <div class="driver-sub">Vehicle: TN-01-FG-8821 · BIS Certified</div>
+          </div>
+        </div>
+
+        <div style="font-size:13px;font-weight:700;color:var(--deep);margin-bottom:6px;">Delivery Progress:</div>
+        <div style="font-size:12px;color:var(--orange);font-weight:600;margin-bottom:12px;">● Agent En Route to Anna Nagar</div>
+
+        <button class="btn-app-primary" style="background:var(--deep);" onclick="alert('Calling Agent Ravi Kumar...')">
+          <i class="fas fa-phone-alt"></i> Call Agent
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 4. HISTORY SCREEN ── -->
+  <div id="screen-history" class="screen">
+    <div class="section-padding">
+      <div class="sec-title">Order History</div>
+
+      <div class="history-item">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="hist-icon">⛽</div>
+          <div>
+            <div class="hist-title">Petrol · 20 Litres</div>
+            <div class="hist-date">Today, 2:15 PM · Anna Nagar</div>
+          </div>
+        </div>
+        <div class="hist-price">₹2,059</div>
+      </div>
+
+      <div class="history-item">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="hist-icon">🛢️</div>
+          <div>
+            <div class="hist-title">Diesel · 30 Litres</div>
+            <div class="hist-date">Yesterday · T. Nagar</div>
+          </div>
+        </div>
+        <div class="hist-price">₹2,705</div>
+      </div>
+
+      <div class="history-item">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="hist-icon">✨</div>
+          <div>
+            <div class="hist-title">Premium · 15 Litres</div>
+            <div class="hist-date">20 Jul 2026 · Adyar</div>
+          </div>
+        </div>
+        <div class="hist-price">₹1,709</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 5. PROFILE SCREEN ── -->
+  <div id="screen-profile" class="screen">
+    <div class="section-padding">
+      <div class="profile-header">
+        <div class="avatar-large">PT</div>
+        <div style="font-family:var(--font-head);font-weight:800;font-size:18px;">Pawan Teja</div>
+        <div style="font-size:12px;color:var(--muted);">pawan@fuelgo.in · +91 98765 43210</div>
+      </div>
+
+      <div class="profile-menu">
+        <div class="menu-item" onclick="alert('FuelPoints: 1,240 pts')">
+          <span>🎁 FuelPoints Balance (1,240 pts)</span>
+          <i class="fas fa-chevron-right"></i>
+        </div>
+        <div class="menu-item" onclick="alert('Saved Vehicles: Honda City (TN-01-AB-1234)')">
+          <span>🚗 Saved Vehicles</span>
+          <i class="fas fa-chevron-right"></i>
+        </div>
+        <div class="menu-item" onclick="alert('Payment Methods: UPI ID active')">
+          <span>💳 Payment Methods</span>
+          <i class="fas fa-chevron-right"></i>
+        </div>
+        <div class="menu-item" onclick="alert('Support: 24/7 Helpline 1800-FUELGO')">
+          <span>🎧 Customer Support</span>
+          <i class="fas fa-chevron-right"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BOTTOM TAB NAVIGATION BAR ── -->
   <nav class="bottom-nav">
-    <div class="nav-item active">
+    <div class="tab-item active" onclick="switchTab('home')">
       <i class="fas fa-home"></i>
       Home
     </div>
-    <div class="nav-item">
+    <div class="tab-item" onclick="switchTab('order')">
       <i class="fas fa-gas-pump"></i>
       Order
     </div>
-    <div class="nav-item">
+    <div class="tab-item" onclick="switchTab('track')">
       <i class="fas fa-map-marker-alt"></i>
       Track
     </div>
-    <div class="nav-item">
+    <div class="tab-item" onclick="switchTab('history')">
       <i class="fas fa-history"></i>
       History
     </div>
-    <div class="nav-item">
+    <div class="tab-item" onclick="switchTab('profile')">
       <i class="fas fa-user"></i>
       Profile
     </div>
   </nav>
+
+  <!-- ── SOS EMERGENCY MODAL ── -->
+  <div id="sosModal" class="sos-overlay">
+    <div class="sos-modal">
+      <div class="sos-icon">⚡</div>
+      <div class="sos-title">Emergency SOS Dispatch</div>
+      <div class="sos-desc">Are you stranded with an empty tank? Our nearest emergency agent will be dispatched immediately with guaranteed ETA under 20 minutes.</div>
+      <button class="btn-app-primary" style="margin-bottom:10px;" onclick="confirmEmergencySOS()">Confirm SOS Dispatch</button>
+      <button class="btn-app-primary" style="background:var(--surface);color:var(--deep);" onclick="closeSOSModal()">Cancel</button>
+    </div>
+  </div>
 </div>
 
 <script>
-let appQty = 20;
-let appPrice = 101.5;
-let appFuel = 'Petrol';
+let currentQty = 20;
+let currentPrice = 101.5;
+let currentFuelName = 'Petrol';
 
-function selectAppFuel(el, name, price) {
-  document.querySelectorAll('.fuel-opt').forEach(o => o.classList.remove('active'));
+function switchTab(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+
+  document.getElementById('screen-' + name).classList.add('active');
+  const idx = ['home', 'order', 'track', 'history', 'profile'].indexOf(name);
+  if (idx !== -1) {
+    document.querySelectorAll('.tab-item')[idx].classList.add('active');
+  }
+}
+
+function quickSelectFuel(fuel, price) {
+  switchTab('order');
+  const btns = document.querySelectorAll('.fuel-btn');
+  const idx = ['Petrol', 'Diesel', 'Premium', 'LPG'].indexOf(fuel);
+  if (idx !== -1 && btns[idx]) {
+    chooseFuel(btns[idx], fuel, price);
+  }
+}
+
+function chooseFuel(el, fuel, price) {
+  document.querySelectorAll('.fuel-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
-  appFuel = name;
-  appPrice = price;
-  calcAppTotal();
+  currentFuelName = fuel;
+  currentPrice = price;
+  updateOrderCalc();
 }
 
-function changeAppQty(delta) {
-  appQty = Math.max(5, Math.min(100, appQty + delta));
-  document.getElementById('app-qty').textContent = appQty;
-  calcAppTotal();
+function stepQty(delta) {
+  currentQty = Math.max(5, Math.min(100, currentQty + delta));
+  document.getElementById('order-qty-disp').textContent = currentQty;
+  updateOrderCalc();
 }
 
-function calcAppTotal() {
-  const sub = Math.round(appPrice * appQty * 10) / 10;
+function updateOrderCalc() {
+  const sub = Math.round(currentPrice * currentQty * 10) / 10;
   const total = sub + 29;
-  document.getElementById('app-summary').textContent = appFuel + ' × ' + appQty + 'L + ₹29 fee';
-  document.getElementById('app-total-price').textContent = '₹' + total.toLocaleString('en-IN');
+  document.getElementById('order-summary-txt').textContent = currentFuelName + ' × ' + currentQty + 'L + ₹29 fee';
+  document.getElementById('order-total-price').textContent = '₹' + total.toLocaleString('en-IN');
 }
 
-function confirmAppOrder(btn) {
-  btn.textContent = '✓ Dispatching Agent...';
-  btn.style.background = '#2D8A5A';
-  setTimeout(() => {
-    alert('Order Placed Successfully! Your delivery agent is en route.');
-  }, 500);
+function submitAppOrder() {
+  alert('Order Confirmed! Dispatching nearest delivery agent to your location...');
+  switchTab('track');
 }
 
-function triggerEmergency() {
-  alert('⚡ Emergency SOS Dispatched! Nearest agent assigned (ETA < 20 mins).');
+function openSOSModal() {
+  document.getElementById('sosModal').style.display = 'flex';
+}
+
+function closeSOSModal() {
+  document.getElementById('sosModal').style.display = 'none';
+}
+
+function confirmEmergencySOS() {
+  closeSOSModal();
+  alert('⚡ SOS Activated! Emergency agent assigned (ETA < 20 mins).');
+  switchTab('track');
 }
 </script>
 </body>
