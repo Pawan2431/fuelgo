@@ -1,5 +1,26 @@
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
+const { createClient } = require('@supabase/supabase-js');
+
+// Supabase Cloud Database Configuration
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://feshnblvfdhjgehklvd.supabase.co';
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlc2huYmx2ZmRoanZnZWhrbHZkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NDc4MjE0NCwiZXhwIjoyMTAwMzU4MTQ0fQ.OR-s7TYXYL2EDgl11A9vNavd-z6UZVG5TvL4tmxDqfY';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlc2huYmx2ZmRoanZnZWhrbHZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE384NzgyMTQ0LCJleHAiOjIxMDAzNTgxNDR9.8AKDE2oehprL4yYcyKhGBSrX4ovH4OJQkq3paueweE0';
+
+// Initialize Supabase Client
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+// Supabase Helper to Sync Records
+async function syncToSupabase(table, record) {
+  try {
+    const { data, error } = await supabase.from(table).upsert(record);
+    if (error) throw error;
+    console.log(`⚡ Supabase Cloud DB Synced: [${table}]`);
+    return data;
+  } catch (err) {
+    console.log(`⚡ Supabase Note (${table}): ${err.message}`);
+  }
+}
 
 // Initialize Database & Firebase Realtime Database Sync
 const dbFile = process.env.DB_FILE || 'fuelgo.db';
@@ -165,3 +186,6 @@ syncToFirebase('status', {
 module.exports = db;
 module.exports.syncToFirebase = syncToFirebase;
 module.exports.FIREBASE_DB_URL = FIREBASE_DB_URL;
+module.exports.supabase = supabase;
+module.exports.syncToSupabase = syncToSupabase;
+module.exports.SUPABASE_URL = SUPABASE_URL;

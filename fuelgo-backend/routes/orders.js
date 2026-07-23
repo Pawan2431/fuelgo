@@ -1,5 +1,6 @@
 const express = require('express');
 const db = require('../database');
+const { syncToSupabase } = require('../database');
 const verifyToken = require('../middleware/auth');
 
 const router = express.Router();
@@ -43,6 +44,22 @@ router.post('/', verifyToken, (req, res) => {
     `);
     
     const info = insertOrder.run(user_id, station_id, fuel_type, quantity_litres, total_price, payment_method, address, lat, lng, eta_minutes);
+
+    // 5. Sync Order to Supabase Cloud Database
+    syncToSupabase('orders', {
+      id: info.lastInsertRowid,
+      user_id,
+      station_id,
+      fuel_type,
+      quantity_litres,
+      total_price,
+      payment_method,
+      delivery_address: address,
+      delivery_lat: lat,
+      delivery_lng: lng,
+      status: 'confirmed',
+      eta_minutes
+    });
 
     res.json({
       order_id: info.lastInsertRowid,

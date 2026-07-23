@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../database');
+const { syncToSupabase } = require('../database');
 
 const router = express.Router();
 
@@ -24,6 +25,14 @@ router.post('/register', (req, res) => {
 
     const insertUser = db.prepare('INSERT INTO users (name, email, password_hash, phone) VALUES (?, ?, ?, ?)');
     const info = insertUser.run(name, email, password_hash, phone || null);
+
+    // Sync User Account to Supabase Cloud Database
+    syncToSupabase('users', {
+      id: info.lastInsertRowid,
+      name,
+      email,
+      phone: phone || null
+    });
 
     const secret = process.env.JWT_SECRET || 'fuelgo_super_secret_key_2026';
     const token = jwt.sign({ id: info.lastInsertRowid, email, name }, secret, { expiresIn: '7d' });
