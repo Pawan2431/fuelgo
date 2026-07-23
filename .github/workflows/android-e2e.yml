@@ -18,10 +18,6 @@ concurrency:
   group: "pages"
   cancel-in-progress: false
 
-env:
-  ACTIONS_ALLOW_USE_UNSECURE_NODE20: true
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: true
-
 jobs:
   android-e2e-pipeline:
     name: Android Appium 400+ E2E & GitHub Pages Deployment
@@ -61,12 +57,15 @@ jobs:
 
       - name: "Stage 6 & 7: Start & Verify Android Emulator"
         continue-on-error: true
-        uses: reactivecircuits/android-emulator-runner@v2
+        uses: android-actions/android-emulator-runner@v4
         with:
           api-level: 31
           target: google_apis
           arch: x86_64
           profile: Pixel_6
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
           script: |
             echo "Device initialized and ADB connected:"
             adb devices || true
@@ -107,11 +106,12 @@ jobs:
         run: |
           mkdir -p public/reports/latest
           mkdir -p public/reports/history/build-${{ github.run_number }}
-          cp -r automation/reports/HTML/* public/reports/latest/
-          cp -r automation/reports/Summary/summary.md public/reports/latest/
-          cp -r automation/screenshots public/reports/latest/
-          cp -r automation/logs public/reports/latest/
-          cp -r public/reports/latest/* public/reports/history/build-${{ github.run_number }}/
+          mkdir -p automation/reports/HTML automation/reports/Summary automation/screenshots automation/logs
+          cp -r automation/reports/HTML/* public/reports/latest/ 2>/dev/null || true
+          cp -r automation/reports/Summary/summary.md public/reports/latest/ 2>/dev/null || true
+          cp -r automation/screenshots/* public/reports/latest/ 2>/dev/null || true
+          cp -r automation/logs/* public/reports/latest/ 2>/dev/null || true
+          cp -r public/reports/latest/* public/reports/history/build-${{ github.run_number }}/ 2>/dev/null || true
 
       - name: "Deploy Reports to GitHub Pages (gh-pages Branch)"
         if: always()

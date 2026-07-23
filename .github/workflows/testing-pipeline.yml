@@ -7,10 +7,6 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
-env:
-  ACTIONS_ALLOW_USE_UNSECURE_NODE20: true
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: true
-
 jobs:
   # ====================================================
   # JOB 1: Backend API & Baseline Load Testing

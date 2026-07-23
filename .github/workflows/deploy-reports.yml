@@ -11,10 +11,6 @@ permissions:
   pages: write
   id-token: write
 
-env:
-  ACTIONS_ALLOW_USE_UNSECURE_NODE20: true
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: true
-
 jobs:
   deploy-pages-manual:
     name: Deploy Reports to GitHub Pages

@@ -11,10 +11,6 @@ permissions:
   contents: read
   security-events: write
 
-env:
-  ACTIONS_ALLOW_USE_UNSECURE_NODE20: true
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: true
-
 jobs:
   devsecops-audit:
     name: 🛡️ Security Audit, SAST, DAST & Performance Analysis
@@ -79,6 +75,7 @@ jobs:
       - name: Generate Audit Reports & Excel Workbooks
         run: |
           cd automation
+          npm ci
           node generateExcelAuditReports.js
 
       - name: Upload Security & Performance Audit Artifacts
