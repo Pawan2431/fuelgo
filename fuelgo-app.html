@@ -477,10 +477,15 @@ html, body {
 <div class="app-viewport">
   <!-- ── HEADER ── -->
   <header class="app-header">
-    <a href="#" class="brand-link">
-      <img src="FuelGo.png" alt="FuelGo Logo">
-      <span class="brand-logo">Fuel<span>Go</span></span>
-    </a>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <button class="back-arrow-btn" id="app-back-btn" onclick="handleTopBackNavigation()" style="background: transparent; border: none; color: white; font-size: 18px; cursor: pointer; padding: 6px 8px; display: none;" title="Go Back">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+      <a href="#" class="brand-link">
+        <img src="FuelGo.png" alt="FuelGo Logo">
+        <span class="brand-logo">Fuel<span>Go</span></span>
+      </a>
+    </div>
     <div id="header-right-area">
       <span class="role-badge" id="current-role-badge">Login Required</span>
     </div>
@@ -765,12 +770,21 @@ function executeRoleLogin() {
     document.getElementById('screen-admin').classList.add('active');
     document.getElementById('current-role-badge').textContent = '🛡️ Admin Portal';
   }
+
+  // Show top back arrow when inside an active session
+  document.getElementById('app-back-btn').style.display = 'inline-flex';
 }
 
 function logoutCurrentRole() {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-login').classList.add('active');
   document.getElementById('current-role-badge').textContent = 'Login Required';
+  // Hide top back arrow on login screen
+  document.getElementById('app-back-btn').style.display = 'none';
+}
+
+function handleTopBackNavigation() {
+  logoutCurrentRole();
 }
 
 function chooseFuel(el, fuel, price) {
