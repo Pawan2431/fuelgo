@@ -3,9 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>FuelGo Customer Mobile App</title>
+<title>FuelGo Customer Mobile App — Chetipedu</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- LEAFLET MAPS CSS & JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -34,7 +39,7 @@ html, body {
   overflow-x: hidden;
 }
 
-/* ── CONTAINER ── */
+/* ── APP CONTAINER ── */
 .app-viewport {
   max-width: 480px;
   min-height: 100vh;
@@ -47,7 +52,7 @@ html, body {
   padding-bottom: 70px;
 }
 
-/* ── HEADER ── */
+/* ── APP HEADER ── */
 .app-header {
   position: sticky;
   top: 0;
@@ -107,34 +112,17 @@ html, body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ── CUSTOMER LOGIN SCREEN ── */
-.login-container {
-  padding: 36px 24px;
-}
+/* ── LOGIN SCREEN ── */
+.login-container { padding: 36px 24px; }
 
 .login-header {
   text-align: center;
   margin-bottom: 24px;
 }
 
-.login-logo-img {
-  height: 54px;
-  width: auto;
-  margin-bottom: 12px;
-}
-
-.login-title {
-  font-family: var(--font-head);
-  font-weight: 800;
-  font-size: 26px;
-  color: var(--deep);
-  margin-bottom: 4px;
-}
-
-.login-sub {
-  font-size: 13px;
-  color: var(--muted);
-}
+.login-logo-img { height: 54px; width: auto; margin-bottom: 12px; }
+.login-title { font-family: var(--font-head); font-weight: 800; font-size: 26px; color: var(--deep); margin-bottom: 4px; }
+.login-sub { font-size: 13px; color: var(--muted); }
 
 .form-card {
   background: white;
@@ -162,14 +150,9 @@ html, body {
   align-items: center;
 }
 
-.input-icon {
-  position: absolute;
-  left: 14px;
-  color: var(--muted);
-  font-size: 14px;
-}
+.input-icon { position: absolute; left: 14px; color: var(--muted); font-size: 14px; }
 
-.input-box {
+.input-box, .select-box {
   width: 100%;
   padding: 12px 14px 12px 40px;
   border-radius: 12px;
@@ -180,15 +163,9 @@ html, body {
   color: var(--deep);
   outline: none;
 }
-.input-box:focus { border-color: var(--orange); }
+.input-box:focus, .select-box:focus { border-color: var(--orange); }
 
-.toggle-pwd {
-  position: absolute;
-  right: 14px;
-  color: var(--muted);
-  cursor: pointer;
-  font-size: 14px;
-}
+.toggle-pwd { position: absolute; right: 14px; color: var(--muted); cursor: pointer; font-size: 14px; }
 
 .demo-creds {
   background: #FFF6F0;
@@ -217,7 +194,7 @@ html, body {
 .btn-login:hover { background: var(--orange2); }
 .btn-login:active { transform: scale(0.98); }
 
-/* ── CUSTOMER APP SCREEN ── */
+/* ── HOME SCREEN ── */
 .home-banner {
   background: var(--deep);
   color: white;
@@ -244,7 +221,7 @@ html, body {
   padding: 6px 12px;
   border-radius: 20px;
   font-size: 11px;
-  color: rgba(255,255,255,0.8);
+  color: rgba(255,255,255,0.85);
 }
 
 .live-card {
@@ -272,6 +249,45 @@ html, body {
 
 .section-padding { padding: 20px; }
 .sec-title { font-family: var(--font-head); font-weight: 800; font-size: 18px; color: var(--deep); margin-bottom: 12px; }
+
+/* ── LEAFLET MAP CONTAINER ── */
+#app-map {
+  width: 100%;
+  height: 240px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  margin-bottom: 16px;
+  z-index: 10;
+}
+
+/* ── NEARBY STATIONS GRID ── */
+.station-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.station-item {
+  background: white;
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.station-item.active, .station-item:hover {
+  border-color: var(--orange);
+  background: #FFF6F0;
+}
+
+.station-name { font-family: var(--font-head); font-weight: 700; font-size: 13px; color: var(--deep); }
+.station-sub { font-size: 11px; color: var(--muted); }
+.station-dist { font-family: var(--font-head); font-weight: 800; font-size: 12px; color: var(--orange); }
 
 .fuel-grid {
   display: grid;
@@ -337,6 +353,39 @@ html, body {
 }
 
 .summary-price { font-family: var(--font-head); font-weight: 800; font-size: 20px; color: white; }
+
+/* ── CONFIRMATION MODAL OVERLAY ── */
+.confirm-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 300;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.confirm-card {
+  background: white;
+  border-radius: 24px;
+  padding: 24px;
+  max-width: 380px;
+  width: 100%;
+}
+
+.confirm-title { font-family: var(--font-head); font-weight: 800; font-size: 20px; color: var(--deep); margin-bottom: 14px; text-align: center; }
+
+.confirm-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.confirm-row:last-child { border-bottom: none; }
+.confirm-lbl { color: var(--muted); }
+.confirm-val { font-family: var(--font-head); font-weight: 700; color: var(--deep); }
 
 /* ── BOTTOM NAV (CUSTOMER) ── */
 .bottom-nav {
@@ -440,10 +489,10 @@ html, body {
             <div class="greeting-text">Welcome Back</div>
             <div class="greeting-name">Pawan Teja</div>
           </div>
-          <div class="location-pill">📍 Anna Nagar, Chennai</div>
+          <div class="location-pill">📍 Chetipedu, Tamil Nadu</div>
         </div>
         <div class="live-card">
-          <div style="font-family:var(--font-head);font-size:13px;color:white;font-weight:700;margin-bottom:8px;">Live Account Status</div>
+          <div style="font-family:var(--font-head);font-size:13px;color:white;font-weight:700;margin-bottom:8px;">Live Chetipedu Account Status</div>
           <div class="stats-grid">
             <div class="stat-box"><div class="stat-val">₹2,059</div><div class="stat-lbl">Spend</div></div>
             <div class="stat-box"><div class="stat-val">340L</div><div class="stat-lbl">Delivered</div></div>
@@ -453,11 +502,42 @@ html, body {
       </div>
 
       <div class="section-padding">
-        <div class="sec-title">Quick Fuel Dispatch</div>
+        <!-- EXACT MAP CONTAINER -->
+        <div class="sec-title">Exact Map & Nearby Stations</div>
+        <div id="app-map"></div>
+
+        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Select Station Source:</div>
+        <div class="station-list">
+          <div class="station-item active" onclick="selectStation(this, 'Indian Oil Chetipedu (0.8 km)', 0.8)">
+            <div>
+              <div class="station-name">⛽ Indian Oil Station</div>
+              <div class="station-sub">Chetipedu Main Road</div>
+            </div>
+            <div class="station-dist">0.8 km</div>
+          </div>
+
+          <div class="station-item" onclick="selectStation(this, 'Bharat Petroleum Sriperumbudur (1.5 km)', 1.5)">
+            <div>
+              <div class="station-name">⛽ Bharat Petroleum (BPCL)</div>
+              <div class="station-sub">Sriperumbudur Highway</div>
+            </div>
+            <div class="station-dist">1.5 km</div>
+          </div>
+
+          <div class="station-item" onclick="selectStation(this, 'HP Petrol Pump Chetipedu (2.2 km)', 2.2)">
+            <div>
+              <div class="station-name">⛽ HP Petrol Pump</div>
+              <div class="station-sub">Chetipedu Bypass</div>
+            </div>
+            <div class="station-dist">2.2 km</div>
+          </div>
+        </div>
+
+        <div class="sec-title">Order Fuel Dispatch</div>
         <div class="form-card">
           <div class="field-group">
             <label class="field-label">Delivery Address</label>
-            <input type="text" class="input-box" style="padding-left:14px;" value="Anna Nagar, Chennai — 600040">
+            <input type="text" class="input-box" id="cust-delivery-addr" style="padding-left:14px;" value="Chetipedu, Tamil Nadu — 602105">
           </div>
 
           <div class="field-group">
@@ -501,8 +581,8 @@ html, body {
             <div class="summary-price" id="cust-total-val">₹2,059</div>
           </div>
 
-          <button class="btn-login" style="width:100%;" onclick="confirmCustomerOrder()">
-            Confirm Order Now
+          <button class="btn-login" style="width:100%;" onclick="openOrderConfirmModal()">
+            Proceed to Confirm Order
           </button>
         </div>
       </div>
@@ -511,10 +591,45 @@ html, body {
     <!-- BOTTOM TAB NAV -->
     <nav class="bottom-nav">
       <div class="tab-item active"><i class="fas fa-home"></i>Home</div>
-      <div class="tab-item" onclick="alert('Navigating to Live GPS Tracking...')"><i class="fas fa-map-marker-alt"></i>Track</div>
-      <div class="tab-item" onclick="alert('Viewing Past Orders...')"><i class="fas fa-history"></i>History</div>
+      <div class="tab-item" onclick="alert('Navigating to Chetipedu GPS Map...')"><i class="fas fa-map-marker-alt"></i>Track</div>
+      <div class="tab-item" onclick="alert('Viewing Past Chetipedu Orders...')"><i class="fas fa-history"></i>History</div>
       <div class="tab-item" onclick="logoutCustomer()"><i class="fas fa-sign-out-alt"></i>Logout</div>
     </nav>
+  </div>
+
+  <!-- ── ADJUSTED CONFIRM ORDER MODAL ── -->
+  <div id="confirmModal" class="confirm-modal-overlay">
+    <div class="confirm-card">
+      <div class="confirm-title">Confirm Fuel Order</div>
+
+      <div class="confirm-row">
+        <span class="confirm-lbl">Delivery Location</span>
+        <span class="confirm-val" id="cfm-addr">Chetipedu, TN 602105</span>
+      </div>
+      <div class="confirm-row">
+        <span class="confirm-lbl">Station Source</span>
+        <span class="confirm-val" id="cfm-station">Indian Oil Chetipedu</span>
+      </div>
+      <div class="confirm-row">
+        <span class="confirm-lbl">Fuel & Quantity</span>
+        <span class="confirm-val" id="cfm-fuel">Petrol · 20 Litres</span>
+      </div>
+      <div class="confirm-row">
+        <span class="confirm-lbl">Estimated Arrival</span>
+        <span class="confirm-val" style="color:var(--orange);">⚡ 12 Minutes (Ravi Kumar)</span>
+      </div>
+      <div class="confirm-row">
+        <span class="confirm-lbl">Total Payable</span>
+        <span class="confirm-val" id="cfm-price" style="font-size:16px;color:var(--green);">₹2,059</span>
+      </div>
+
+      <button class="btn-login" style="margin-top:16px;" onclick="confirmAndTrackOrder()">
+        Confirm & Track Live Delivery
+      </button>
+      <button class="btn-login" style="margin-top:8px;background:var(--surface);color:var(--deep);" onclick="closeConfirmModal()">
+        Back to Edit
+      </button>
+    </div>
   </div>
 </div>
 
@@ -522,6 +637,9 @@ html, body {
 let custQty = 20;
 let custPrice = 101.5;
 let custFuel = 'Petrol';
+let selectedStationName = 'Indian Oil Chetipedu (0.8 km)';
+let mapInitialized = false;
+let leafletMap = null;
 
 function togglePasswordVisibility() {
   const input = document.getElementById('login-password');
@@ -544,8 +662,13 @@ function executeCustomerLogin() {
 
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-customer').classList.add('active');
-  document.getElementById('current-role-badge').textContent = '👤 Customer Account';
+  document.getElementById('current-role-badge').textContent = '👤 Chetipedu Customer';
   document.getElementById('app-back-btn').style.display = 'inline-flex';
+
+  if (!mapInitialized) {
+    setTimeout(initChetipeduMap, 300);
+    mapInitialized = true;
+  }
 }
 
 function logoutCustomer() {
@@ -557,6 +680,12 @@ function logoutCustomer() {
 
 function handleTopBackNavigation() {
   logoutCustomer();
+}
+
+function selectStation(el, name, dist) {
+  document.querySelectorAll('.station-item').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  selectedStationName = name;
 }
 
 function chooseFuel(el, fuel, price) {
@@ -580,8 +709,53 @@ function updateCustCalc() {
   document.getElementById('cust-total-val').textContent = '₹' + total.toLocaleString('en-IN');
 }
 
-function confirmCustomerOrder() {
-  alert('Order Placed Successfully! Your delivery agent is en route.');
+function openOrderConfirmModal() {
+  const addr = document.getElementById('cust-delivery-addr').value || 'Chetipedu, TN 602105';
+  const total = document.getElementById('cust-total-val').textContent;
+
+  document.getElementById('cfm-addr').textContent = addr;
+  document.getElementById('cfm-station').textContent = selectedStationName;
+  document.getElementById('cfm-fuel').textContent = custFuel + ' · ' + custQty + ' Litres';
+  document.getElementById('cfm-price').textContent = total;
+
+  document.getElementById('confirmModal').style.display = 'flex';
+}
+
+function closeConfirmModal() {
+  document.getElementById('confirmModal').style.display = 'none';
+}
+
+function confirmAndTrackOrder() {
+  closeConfirmModal();
+  alert('⚡ Order Confirmed! Dispatching from ' + selectedStationName + ' to Chetipedu (ETA: 12 mins).');
+}
+
+/* ── LEAFLET CHETIPEDU MAP INIT ── */
+function initChetipeduMap() {
+  const lat = 12.9734;
+  const lng = 79.9328;
+
+  leafletMap = L.map('app-map').setView([lat, lng], 14);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap'
+  }).addTo(leafletMap);
+
+  // Delivery Location Marker
+  L.marker([lat, lng]).addTo(leafletMap)
+    .bindPopup('<b>Your Location</b><br>Chetipedu, TN 602105')
+    .openPopup();
+
+  // Nearby Stations
+  L.marker([12.9780, 79.9380]).addTo(leafletMap)
+    .bindPopup('<b>Indian Oil Station</b><br>Chetipedu (0.8 km)');
+
+  L.marker([12.9680, 79.9250]).addTo(leafletMap)
+    .bindPopup('<b>Bharat Petroleum (BPCL)</b><br>Sriperumbudur (1.5 km)');
+
+  L.marker([12.9820, 79.9410]).addTo(leafletMap)
+    .bindPopup('<b>HP Petrol Pump</b><br>Chetipedu Main Rd (2.2 km)');
 }
 </script>
 </body>
