@@ -16,3 +16,8 @@ node_modules/
 Thumbs.db
 .vscode/
 .idea/
+.gradle/
+**/.gradle/
+build/
+**/build/
+

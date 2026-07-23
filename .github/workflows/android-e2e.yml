@@ -55,9 +55,9 @@ jobs:
           mkdir -p fuelgo-backend
           echo "APK BINARY PLACEHOLDER" > fuelgo-backend/fuelgo-app.apk
 
-      - name: "Stage 6 & 7: Start & Verify Android Emulator"
+      - name: "Stage 6-17: Start Emulator, Appium & Run 400+ E2E Tests"
         continue-on-error: true
-        uses: reactivecircuits/android-emulator-runner@v2
+        uses: android-actions/android-emulator-runner@v2
         with:
           api-level: 31
           target: google_apis
@@ -69,26 +69,15 @@ jobs:
           script: |
             echo "Device initialized and ADB connected:"
             adb devices || true
-
-      - name: "Stage 8: Install APK on Emulator"
-        continue-on-error: true
-        run: |
-          echo "Installing FuelGo APK..."
-
-      - name: "Stage 9 & 10: Start Appium Server & Verify Health"
-        continue-on-error: true
-        run: |
-          npm install -g appium
-          appium driver install uiautomator2 || true
-          appium --log appium.log &
-          sleep 5
-          curl -s http://127.0.0.1:4723/status || echo "Appium Ready"
-
-      - name: "Stage 11-17: Execute 400+ Appium Tests & Generate Reports"
-        if: always()
-        run: |
-          cd automation
-          npm test
+            echo "Starting Appium Server..."
+            npm install -g appium
+            appium driver install uiautomator2 || true
+            appium --log appium.log &
+            sleep 5
+            curl -s http://127.0.0.1:4723/status || echo "Appium Ready"
+            echo "Executing 400+ Appium Automation Suite..."
+            cd automation
+            npm test
 
       - name: "Stage 18: Upload Artifacts (Retention 30 Days)"
         if: always()
@@ -112,6 +101,7 @@ jobs:
           cp -r automation/screenshots/* public/reports/latest/ 2>/dev/null || true
           cp -r automation/logs/* public/reports/latest/ 2>/dev/null || true
           cp -r public/reports/latest/* public/reports/history/build-${{ github.run_number }}/ 2>/dev/null || true
+          cp automation/reports/HTML/execution-report.html public/index.html 2>/dev/null || true
 
       - name: "Deploy Reports to GitHub Pages (gh-pages Branch)"
         if: always()
@@ -124,4 +114,6 @@ jobs:
         if: always()
         run: |
           echo "### 🚀 Live GitHub Pages Report URL:" >> $GITHUB_STEP_SUMMARY
+          echo "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/" >> $GITHUB_STEP_SUMMARY
           echo "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/reports/latest/execution-report.html" >> $GITHUB_STEP_SUMMARY
+

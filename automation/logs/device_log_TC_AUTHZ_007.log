@@ -1,1 +1,1 @@
-[DEVICE_LOG_STACKTRACE] 2026-07-22T20:01:29.413Z ERROR TC_AUTHZ_007: AssertionError: Expected element to be visible within 10000ms
+[DEVICE_LOG_STACKTRACE] 2026-07-22T22:31:44.295Z ERROR TC_AUTHZ_007: AssertionError: Expected element to be visible within 10000ms
