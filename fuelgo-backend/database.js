@@ -89,6 +89,8 @@ if (checkPrices.count === 0) {
   insertPrice.run('diesel', 87.62, 'L', 0.0);
   insertPrice.run('cng', 78.50, 'kg', -0.50);
   insertPrice.run('ev', 9.20, 'kWh', 0.0);
+  insertPrice.run('premium', 112.00, 'L', 0.20);
+  insertPrice.run('lpg', 68.00, 'kg', 0.0);
 
   // 3. Seed Stations in Chennai
   const insertStation = db.prepare('INSERT INTO stations (name, emoji, city, lat, lng, rating, is_open, fuels_available, distance_km) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');

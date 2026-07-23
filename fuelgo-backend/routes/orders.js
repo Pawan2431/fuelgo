@@ -20,10 +20,10 @@ router.post('/', verifyToken, (req, res) => {
       return res.status(404).json({ error: 'Station not found.' });
     }
 
-    // 2. Fetch Fuel Price
-    const fuel = db.prepare('SELECT price_per_unit FROM fuel_prices WHERE fuel_type = ?').get(fuel_type);
+    // 2. Fetch Fuel Price (Case-Insensitive)
+    const fuel = db.prepare('SELECT price_per_unit FROM fuel_prices WHERE LOWER(fuel_type) = LOWER(?)').get(fuel_type);
     if (!fuel) {
-      return res.status(400).json({ error: 'Invalid fuel type.' });
+      return res.status(400).json({ error: 'Invalid fuel type: ' + fuel_type });
     }
 
     // 3. Calculate total
