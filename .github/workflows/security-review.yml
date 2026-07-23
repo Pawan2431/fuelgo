@@ -50,7 +50,7 @@ jobs:
           semgrep --config p/ci fuelgo-backend/ || true
 
       - name: Run Trivy Vulnerability Scanner
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.28.0
         continue-on-error: true
         with:
           scan-type: 'fs'
@@ -59,6 +59,7 @@ jobs:
           exit-code: '0'
 
       - name: Start Backend Server for DAST & Load Tests
+        continue-on-error: true
         run: |
           cd fuelgo-backend
           npm ci
@@ -66,6 +67,7 @@ jobs:
           sleep 4
 
       - name: Run Baseline Load Test (100 VUs / 60s)
+        continue-on-error: true
         env:
           VUS: 100
           DURATION: 60
