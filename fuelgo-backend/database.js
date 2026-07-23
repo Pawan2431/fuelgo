@@ -1,11 +1,23 @@
-const { DatabaseSync } = require('node:sqlite');
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
 
 // Initialize the SQLite database
 const dbFile = process.env.DB_FILE || 'fuelgo.db';
-const db = new DatabaseSync(dbFile);
-db.exec('PRAGMA journal_mode = WAL;');
+let db;
+
+try {
+  const { DatabaseSync } = require('node:sqlite');
+  db = new DatabaseSync(dbFile);
+  db.exec('PRAGMA journal_mode = WAL;');
+} catch (err) {
+  try {
+    const Database = require('better-sqlite3');
+    db = new Database(dbFile);
+    db.exec('PRAGMA journal_mode = WAL;');
+  } catch (e) {
+    console.error('Failed to initialize SQLite database:', e.message);
+  }
+}
 
 // Setup Tables
 db.exec(`

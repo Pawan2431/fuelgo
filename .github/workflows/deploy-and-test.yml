@@ -34,7 +34,7 @@ jobs:
       - name: "Stage 2: Setup Node.js Environment"
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
 
       - name: "Stage 2b: Install Dependencies"
         run: |
@@ -70,7 +70,7 @@ jobs:
       - name: "Stage 2: Setup Node.js"
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
 
       - name: "Stage 2b: Install Chrome Browser"
         uses: browser-actions/setup-chrome@v1
