@@ -21,8 +21,14 @@ router.post('/', verifyToken, (req, res) => {
       return res.status(404).json({ error: 'Station not found.' });
     }
 
-    // 2. Fetch Fuel Price (Case-Insensitive)
-    const fuel = db.prepare('SELECT price_per_unit FROM fuel_prices WHERE LOWER(fuel_type) = LOWER(?)').get(fuel_type);
+    // 2. Normalize and Fetch Fuel Price (Case-Insensitive)
+    let normalizedFuel = fuel_type.toLowerCase();
+    if (normalizedFuel.includes('diesel')) normalizedFuel = 'diesel';
+    else if (normalizedFuel.includes('petrol')) normalizedFuel = 'petrol';
+    else if (normalizedFuel.includes('ev')) normalizedFuel = 'ev';
+    else if (normalizedFuel.includes('adblue')) normalizedFuel = 'diesel'; // fallback
+
+    const fuel = db.prepare('SELECT price_per_unit FROM fuel_prices WHERE LOWER(fuel_type) = LOWER(?)').get(normalizedFuel);
     if (!fuel) {
       return res.status(400).json({ error: 'Invalid fuel type: ' + fuel_type });
     }
@@ -38,9 +44,9 @@ router.post('/', verifyToken, (req, res) => {
     const insertOrder = db.prepare(`
       INSERT INTO orders (
         user_id, station_id, fuel_type, quantity_litres, total_price, payment_method,
-        delivery_address, delivery_lat, delivery_lng, agent_name, agent_phone, agent_lat, agent_lng, eta_minutes
+        delivery_address, delivery_lat, delivery_lng, agent_name, agent_phone, agent_lat, agent_lng, payment_status, eta_minutes
       ) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Ravi Kumar', '9876500402', 12.9760, 79.9360, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pawan Teja', '9876500402', 12.9760, 79.9360, 'pending', ?)
     `);
     
     const info = insertOrder.run(user_id, station_id, fuel_type, quantity_litres, total_price, payment_method, address, lat, lng, eta_minutes);
@@ -69,7 +75,7 @@ router.post('/', verifyToken, (req, res) => {
       delivery_address: address,
       delivery_location: { lat, lng },
       agent: {
-        name: 'Ravi Kumar',
+        name: 'Pawan Teja',
         phone: '9876500402',
         location: { lat: 12.9760, lng: 79.9360 }
       }
@@ -95,6 +101,22 @@ router.patch('/:id/location', verifyToken, (req, res) => {
     res.json({ success: true, message: 'Agent tracking location updated in database.' });
   } catch (error) {
     res.status(500).json({ error: 'Database error updating tracking location.' });
+  }
+});
+
+// Mark order as paid
+router.patch('/:id/pay', verifyToken, (req, res) => {
+  try {
+    const update = db.prepare("UPDATE orders SET payment_status = 'paid' WHERE id = ?");
+    const result = update.run(req.params.id);
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Order not found.' });
+    }
+
+    res.json({ success: true, message: 'Order marked as paid.' });
+  } catch (error) {
+    res.status(500).json({ error: 'Database error updating payment status.' });
   }
 });
 

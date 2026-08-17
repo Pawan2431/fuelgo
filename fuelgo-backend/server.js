@@ -6,8 +6,13 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors({ origin: '*' })); // Allow all origins for dev
+// Middleware — Allow all origins (Vercel frontend, Android app, local dev)
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+app.options('*', cors()); // Handle preflight requests
 app.use(express.json());
 
 // Routes

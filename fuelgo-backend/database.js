@@ -101,11 +101,12 @@ db.exec(`
     delivery_address TEXT,
     delivery_lat REAL DEFAULT 12.9734,
     delivery_lng REAL DEFAULT 79.9328,
-    agent_name TEXT DEFAULT 'Ravi Kumar',
+    agent_name TEXT DEFAULT 'Pawan Teja',
     agent_phone TEXT DEFAULT '9876500402',
     agent_lat REAL DEFAULT 12.9760,
     agent_lng REAL DEFAULT 79.9360,
     status TEXT DEFAULT 'confirmed',
+    payment_status TEXT DEFAULT 'pending',
     eta_minutes INTEGER,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(user_id) REFERENCES users(id),
@@ -113,18 +114,32 @@ db.exec(`
   );
 `);
 
+// Password Reset Tokens table for forgot-password OTP flow
+db.exec(`
+  CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    identifier TEXT NOT NULL,
+    otp_hash TEXT NOT NULL,
+    expires_at DATETIME NOT NULL,
+    used BOOLEAN DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+`);
+
 // Column Migrations
 try { db.exec("ALTER TABLE users ADD COLUMN google_id TEXT"); } catch(e){}
+try { db.exec("ALTER TABLE users ADD COLUMN last_login_at DATETIME"); } catch(e){}
 try { db.exec("ALTER TABLE orders ADD COLUMN delivery_address TEXT"); } catch(e){}
 
 // Ensure column migrations if database exists
 try { db.exec("ALTER TABLE orders ADD COLUMN delivery_address TEXT"); } catch(e){}
 try { db.exec("ALTER TABLE orders ADD COLUMN delivery_lat REAL DEFAULT 12.9734"); } catch(e){}
 try { db.exec("ALTER TABLE orders ADD COLUMN delivery_lng REAL DEFAULT 79.9328"); } catch(e){}
-try { db.exec("ALTER TABLE orders ADD COLUMN agent_name TEXT DEFAULT 'Ravi Kumar'"); } catch(e){}
+try { db.exec("ALTER TABLE orders ADD COLUMN agent_name TEXT DEFAULT 'Pawan Teja'"); } catch(e){}
 try { db.exec("ALTER TABLE orders ADD COLUMN agent_phone TEXT DEFAULT '9876500402'"); } catch(e){}
 try { db.exec("ALTER TABLE orders ADD COLUMN agent_lat REAL DEFAULT 12.9760"); } catch(e){}
 try { db.exec("ALTER TABLE orders ADD COLUMN agent_lng REAL DEFAULT 79.9360"); } catch(e){}
+try { db.exec("ALTER TABLE orders ADD COLUMN payment_status TEXT DEFAULT 'pending'"); } catch(e){}
 
 // Check if seeding is needed
 const checkPrices = db.prepare('SELECT COUNT(*) as count FROM fuel_prices').get();
