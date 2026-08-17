@@ -4,6 +4,4 @@ dist/
 .env.local
 .env.*.local
 .env.production
-android/
-capacitor.config.ts.bak
 
