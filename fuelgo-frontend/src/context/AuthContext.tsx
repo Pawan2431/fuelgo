@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserProfile, UserRole, DeliveryAddress, AssetVehicle } from '../types';
 import { DEMO_USER_B2B, INITIAL_SAVED_ADDRESSES, INITIAL_ASSETS } from '../mockData';
 
-const API_BASE = 'http://localhost:3000/api/auth';
+const API_BASE = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/auth`;
 
 interface AuthContextType {
   user: UserProfile | null;

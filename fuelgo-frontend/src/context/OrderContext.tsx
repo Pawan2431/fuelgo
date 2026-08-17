@@ -363,7 +363,8 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       delivery_lng: orderData.deliveryAddress?.lng || 79.9328
     };
 
-    const response = await fetch('http://localhost:3000/api/orders', {
+    const apiUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/orders`;
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
