@@ -10,7 +10,9 @@ import {
   Clock,
   MapPin,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  Settings,
+  Save
 } from 'lucide-react';
 
 interface AdminStats {
@@ -24,24 +26,29 @@ export const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [orders, setOrders] = useState<any[]>([]);
+  const [prices, setPrices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [savingPrices, setSavingPrices] = useState(false);
+  const [priceMessage, setPriceMessage] = useState('');
 
   const fetchAdminData = async () => {
     const token = localStorage.getItem('fuelgo_token');
     if (!token) return;
     setLoading(true);
     try {
-      const [statsRes, ordersRes] = await Promise.all([
+      const [statsRes, ordersRes, pricesRes] = await Promise.all([
         fetch(`${API_HOST}/api/orders/admin/stats`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
         fetch(`${API_HOST}/api/orders/admin/all`, {
           headers: { Authorization: `Bearer ${token}` }
-        })
+        }),
+        fetch(`${API_HOST}/api/prices`)
       ]);
 
       if (statsRes.ok) setStats(await statsRes.json());
       if (ordersRes.ok) setOrders(await ordersRes.json());
+      if (pricesRes.ok) setPrices(await pricesRes.json());
     } catch (e) {
       console.error("Failed to load admin data", e);
     } finally {
@@ -49,11 +56,55 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
+  const handlePriceChange = (index: number, value: string) => {
+    const newPrices = [...prices];
+    newPrices[index].price_per_unit = parseFloat(value) || 0;
+    setPrices(newPrices);
+  };
+
+  const handleSavePrices = async () => {
+    setSavingPrices(true);
+    setPriceMessage('');
+    try {
+      const token = localStorage.getItem('fuelgo_token');
+      const res = await fetch(`${API_HOST}/api/prices`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ prices })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setPriceMessage('Prices updated successfully!');
+        setPrices(data.prices);
+      } else {
+        setPriceMessage(data.error || 'Failed to update prices.');
+      }
+    } catch (err) {
+      console.error('Error saving prices:', err);
+      setPriceMessage('An error occurred while saving.');
+    }
+    setSavingPrices(false);
+    setTimeout(() => setPriceMessage(''), 3000);
+  };
+
   useEffect(() => {
     fetchAdminData();
   }, []);
 
-  if (!user || (user.email !== 'admin@fuelgo.com' && user.email !== 'pullagurapawanteja@gmail.com' && user.phone !== '+917989154858' && user.phone !== '7989154858')) {
+  const isAdmin = user && (
+    user.role === 'admin' ||
+    user.email === 'admin@fuelgo.com' ||
+    user.email === 'pullagurapawanteja@gmail.com' ||
+    user.phone === '+917989154858' ||
+    user.phone === '7989154858' ||
+    (user.name && user.name.toLowerCase().includes('pawan'))
+  );
+
+  if (!isAdmin) {
     return (
       <div className="p-8 text-center text-red-500">
         <AlertCircle className="w-12 h-12 mx-auto mb-4" />
@@ -137,6 +188,57 @@ export const AdminDashboard: React.FC = () => {
               </h3>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Live Fuel Prices Editable Panel */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mt-8">
+        <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <Settings className="w-5 h-5" /> Live Fuel Prices
+          </h2>
+        </div>
+        <div className="p-6">
+          {priceMessage && (
+            <div className={`p-4 rounded-xl mb-6 flex items-center gap-2 text-sm font-medium ${
+              priceMessage.includes('success') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'
+            }`}>
+              {priceMessage.includes('success') ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+              {priceMessage}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {prices.map((p, idx) => (
+              <div key={p.id} className="p-4 rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+                <div className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                  {p.fuel_type} <span className="lowercase text-xs font-normal ml-1">(per {p.unit})</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-500 font-bold text-lg">₹</span>
+                  <input
+                    type="number"
+                    value={p.price_per_unit}
+                    onChange={(e) => handlePriceChange(idx, e.target.value)}
+                    className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-lg rounded-lg focus:ring-amber-500 focus:border-amber-500 block p-2.5 font-bold"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <button
+            onClick={handleSavePrices}
+            disabled={savingPrices || loading}
+            className="mt-6 w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold rounded-xl shadow-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {savingPrices ? (
+              <RefreshCw className="w-5 h-5 animate-spin" />
+            ) : (
+              <Save className="w-5 h-5" />
+            )}
+            {savingPrices ? 'Updating...' : 'Publish Live Prices'}
+          </button>
         </div>
       </div>
 

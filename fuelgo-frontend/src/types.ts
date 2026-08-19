@@ -17,7 +17,7 @@ export interface FuelProduct {
   popularFor: string;
 }
 
-export type UserRole = 'b2b_fleet' | 'b2c_individual' | 'bowser_driver' | 'station_partner';
+export type UserRole = 'b2b_fleet' | 'b2c_individual' | 'bowser_driver' | 'station_partner' | 'admin';
 
 export interface UserProfile {
   id: string;

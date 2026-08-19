@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useOrder } from '../../context/OrderContext';
 import { useAuth } from '../../context/AuthContext';
 import { FuelType, AssetVehicle, DeliveryAddress, FuelOrder } from '../../types';
-import { FUEL_PRODUCTS } from '../../mockData';
 import { SecureDeliveryQrPass } from './SecureDeliveryQrPass';
 import { LandmarkAddressForm } from './LandmarkAddressForm';
 import { PaymentForm } from './PaymentForm';
@@ -38,6 +37,8 @@ const stripePromise = loadStripe('pk_test_TYooMQauvdEDq54NiTphI7jx');
 
 export const FuelOrderWizard: React.FC = () => {
   const {
+    cities,
+    fuelProducts,
     selectedCity,
     createOrder,
     createOrderAPI,
@@ -100,7 +101,7 @@ export const FuelOrderWizard: React.FC = () => {
   const [newAssetReg, setNewAssetReg] = useState('');
   const [newAssetCapacity, setNewAssetCapacity] = useState('500');
 
-  const selectedFuel = FUEL_PRODUCTS.find((f) => f.id === selectedFuelType) || FUEL_PRODUCTS[0];
+  const selectedFuel = fuelProducts.find((f) => f.id === selectedFuelType) || fuelProducts[0];
   
   // Pricing math in INR
   const unitPrice = selectedFuel.pricePerUnit;
@@ -322,7 +323,7 @@ export const FuelOrderWizard: React.FC = () => {
 
                 {/* Fuel Product Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {FUEL_PRODUCTS.map((prod) => {
+                  {fuelProducts.map((prod) => {
                     const isSelected = selectedFuelType === prod.id;
                     return (
                       <button

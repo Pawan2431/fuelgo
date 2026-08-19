@@ -17,7 +17,8 @@ async function connectMongoDB() {
     console.log(`✅ MongoDB Connected: ${conn.connection.host} (DB: ${MONGODB_DB_NAME})`);
   } catch (error) {
     console.error('❌ MongoDB Connection Error:', error.message);
-    process.exit(1);
+    console.warn('⚠️ Server will continue to run without MongoDB (some auth features may fail).');
+    // process.exit(1); // Do not crash the entire server
   }
 }
 

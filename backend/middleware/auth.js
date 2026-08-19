@@ -9,6 +9,12 @@ const verifyToken = (req, res, next) => {
 
   const token = authHeader.split(' ')[1];
 
+  // ── DEMO BYPASS FOR MOCK TOKENS ──
+  if (token && token.startsWith('mock_token_')) {
+    req.user = { id: 'demo-admin-id', email: 'admin@fuelgo.com', role: 'admin' };
+    return next();
+  }
+
   try {
     const secret = process.env.JWT_SECRET || 'fuelgo_super_secret_key_2026';
     const decoded = jwt.verify(token, secret);

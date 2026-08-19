@@ -48,7 +48,11 @@ export default function TwoFactorPage() {
           login(data.user, data.token);
         }
         complete2FA();
-        navigate('/home');
+        if (data.user?.role === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/home');
+        }
       } else {
         setErrorMsg(data.error || 'Invalid OTP code.');
       }
@@ -56,6 +60,7 @@ export default function TwoFactorPage() {
       // Fallback for demo
       if (otpStr === '482916' || otpStr === '123456') {
         complete2FA();
+        // Since we don't have data.user here, we rely on AuthContext if possible, but fallback to home
         navigate('/home');
       } else {
         setErrorMsg('Network error. Please try again.');

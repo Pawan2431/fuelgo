@@ -1,10 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { FuelOrder, FuelType, IndianCityRate, DeliveryAddress, AssetVehicle, BowserDriver } from '../types';
-import { INDIAN_CITIES, INITIAL_ORDERS, DEMO_BOWSERS, FUEL_PRODUCTS } from '../mockData';
+import { INDIAN_CITIES, INITIAL_ORDERS, DEMO_BOWSERS, FUEL_PRODUCTS as INITIAL_FUEL_PRODUCTS } from '../mockData';
+import { FuelProduct } from '../types';
 import confetti from 'canvas-confetti';
 import { supabase } from '../supabaseClient';
 
 interface OrderContextType {
+  cities: IndianCityRate[];
+  fuelProducts: FuelProduct[];
   selectedCity: IndianCityRate;
   setSelectedCity: (city: IndianCityRate) => void;
   orders: FuelOrder[];
@@ -47,6 +50,8 @@ export type ActiveTab = 'tracking' | 'order' | 'dashboard' | 'driver_view' | 'ai
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
 
 export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [cities, setCities] = useState<IndianCityRate[]>(INDIAN_CITIES);
+  const [fuelProducts, setFuelProducts] = useState<FuelProduct[]>(INITIAL_FUEL_PRODUCTS);
   const [selectedCity, setSelectedCity] = useState<IndianCityRate>(INDIAN_CITIES[0]); // Chennai (default)
   const [orders, setOrders] = useState<FuelOrder[]>(() => {
     const saved = localStorage.getItem('fuelgo_orders');
@@ -117,6 +122,59 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         console.warn("Could not auto-detect city:", err.message);
       }, { timeout: 5000 });
     }
+  }, []);
+
+  // Fetch live prices from the API
+  useEffect(() => {
+    const fetchLivePrices = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/prices`);
+        if (res.ok) {
+          const data = await res.json();
+          const mapFuelTypeIdToDb = (id: string) => {
+            if (id === 'diesel_hsd') return 'diesel';
+            if (id === 'petrol_ms') return 'petrol';
+            if (id === 'biodiesel_b20') return 'premium';
+            if (id === 'ev_charge') return 'ev';
+            if (id === 'adblue_def') return 'cng';
+            return id;
+          };
+
+          const prices = Array.isArray(data) ? data : data.prices || [];
+
+          setFuelProducts(prev => prev.map(fp => {
+            const dbType = mapFuelTypeIdToDb(fp.id);
+            const livePrice = prices.find((p: any) => p.fuel_type === dbType);
+            return livePrice ? { ...fp, pricePerUnit: livePrice.price_per_unit } : fp;
+          }));
+
+          setCities(prev => {
+            const newCities = prev.map(city => ({
+              ...city,
+              dieselRate: prices.find((p: any) => p.fuel_type === 'diesel')?.price_per_unit || city.dieselRate,
+              petrolRate: prices.find((p: any) => p.fuel_type === 'petrol')?.price_per_unit || city.petrolRate,
+              biodieselRate: prices.find((p: any) => p.fuel_type === 'premium')?.price_per_unit || city.biodieselRate,
+              evRate: prices.find((p: any) => p.fuel_type === 'ev')?.price_per_unit || city.evRate,
+              adblueRate: prices.find((p: any) => p.fuel_type === 'cng')?.price_per_unit || city.adblueRate,
+            }));
+            
+            setSelectedCity(current => {
+              const updated = newCities.find(c => c.cityName === current.cityName);
+              return updated || current;
+            });
+            
+            return newCities;
+          });
+        }
+      } catch (err) {
+        console.error('Failed to fetch live prices', err);
+      }
+    };
+    fetchLivePrices();
+    
+    // Optional: Refresh prices every minute
+    const interval = setInterval(fetchLivePrices, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   // Update initial mock order location when selectedCity changes
@@ -301,7 +359,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const createOrder = (orderData: Partial<FuelOrder>): FuelOrder => {
-    const fuelProd = FUEL_PRODUCTS.find((p) => p.id === (orderData.fuelType || selectedFuelType)) || FUEL_PRODUCTS[0];
+    const fuelProd = fuelProducts.find((p) => p.id === (orderData.fuelType || selectedFuelType)) || fuelProducts[0];
     const qty = orderData.quantity || 100;
     const unitPrice = fuelProd.pricePerUnit;
     const fuelTotal = qty * unitPrice;
@@ -403,7 +461,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const apiResponse = await response.json();
 
     // Map the backend response to our frontend FuelOrder type
-    const fuelProd = FUEL_PRODUCTS.find((p) => p.id === payload.fuel_type) || FUEL_PRODUCTS[0];
+    const fuelProd = fuelProducts.find((p) => p.id === payload.fuel_type) || fuelProducts[0];
     const unitPrice = fuelProd.pricePerUnit;
     const fuelTotal = payload.quantity_litres * unitPrice;
     const deliveryFee = 0;
@@ -528,6 +586,8 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   return (
     <OrderContext.Provider
       value={{
+        cities,
+        fuelProducts,
         selectedCity,
         setSelectedCity,
         orders,

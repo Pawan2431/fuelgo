@@ -30,7 +30,7 @@ const getIpAndUserAgent = (req) => ({
 
 // ── Register new user ──
 router.post('/register', async (req, res) => {
-  const { name, email, password, phone } = req.body;
+  const { name, email, password, phone, role } = req.body;
 
   // Validate required fields
   if (!name || !email || !password) {
@@ -64,13 +64,14 @@ router.post('/register', async (req, res) => {
       name,
       email,
       password_hash,
-      phone: phone || null
+      phone: phone || null,
+      role: role || 'b2b_fleet'
     });
 
     brevoEmailService.sendWelcomeEmail(email, name).catch(e => console.error("Welcome email failed", e));
 
     const secret = process.env.JWT_SECRET || 'fuelgo_super_secret_key_2026';
-    const token = jwt.sign({ id: newUser._id, email, name }, secret, { expiresIn: '7d' });
+    const token = jwt.sign({ id: newUser._id, email, name, role: newUser.role }, secret, { expiresIn: '7d' });
 
     // Activity Log
     await MongoLogger.logActivity({
@@ -82,7 +83,7 @@ router.post('/register', async (req, res) => {
 
     res.json({
       token,
-      user: { id: newUser._id, name, email, phone: phone || null }
+      user: { id: newUser._id, name, email, phone: phone || null, role: newUser.role }
     });
   } catch (error) {
     console.error('Register error:', error);
@@ -150,11 +151,11 @@ router.post('/login', async (req, res) => {
     });
 
     const secret = process.env.JWT_SECRET || 'fuelgo_super_secret_key_2026';
-    const token = jwt.sign({ id: user._id, email: user.email, name: user.name }, secret, { expiresIn: '7d' });
+    const token = jwt.sign({ id: user._id, email: user.email, name: user.name, role: user.role }, secret, { expiresIn: '7d' });
 
     res.json({
       token,
-      user: { id: user._id, name: user.name, email: user.email, phone: user.phone || null }
+      user: { id: user._id, name: user.name, email: user.email, phone: user.phone || null, role: user.role }
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -227,11 +228,11 @@ router.post('/google', async (req, res) => {
     });
 
     const secret = process.env.JWT_SECRET || 'fuelgo_super_secret_key_2026';
-    const token = jwt.sign({ id: user._id, email: user.email, name: user.name, auth_provider: 'google' }, secret, { expiresIn: '7d' });
+    const token = jwt.sign({ id: user._id, email: user.email, name: user.name, role: user.role, auth_provider: 'google' }, secret, { expiresIn: '7d' });
 
     res.json({
       token,
-      user: { id: user._id, name: user.name, email: user.email, auth_provider: 'google' }
+      user: { id: user._id, name: user.name, email: user.email, role: user.role, auth_provider: 'google' }
     });
 
   } catch (error) {
@@ -373,12 +374,12 @@ router.post('/verify-otp', async (req, res) => {
       await user.save();
 
       const secret = process.env.JWT_SECRET || 'fuelgo_super_secret_key_2026';
-      const token = jwt.sign({ id: user._id, email: user.email, name: user.name, auth_provider: 'simulated_otp' }, secret, { expiresIn: '7d' });
+      const token = jwt.sign({ id: user._id, email: user.email, name: user.name, role: user.role, auth_provider: 'simulated_otp' }, secret, { expiresIn: '7d' });
 
       return res.json({
         success: true,
         token,
-        user: { id: user._id, name: user.name, email: user.email, phone: user.phone, auth_provider: 'simulated_otp' }
+        user: { id: user._id, name: user.name, email: user.email, phone: user.phone, role: user.role, auth_provider: 'simulated_otp' }
       });
     }
 

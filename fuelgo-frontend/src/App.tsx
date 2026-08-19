@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { OrderProvider, useOrder } from './context/OrderContext';
 import { Header } from './components/common/Header';
@@ -22,8 +22,29 @@ import { AdminPaymentVerification } from './components/payment/AdminPaymentVerif
 import { AdminDashboard } from './components/dashboard/AdminDashboard';
 import { AdminLogs } from './components/dashboard/AdminLogs';
 const MainAppContent: React.FC = () => {
-  const { activeTab } = useOrder();
+  const { activeTab, setActiveTab } = useOrder();
   const { user } = useAuth();
+
+  useEffect(() => {
+    if (!user) return;
+    
+    if (user.role === 'admin') {
+      // Admins should default to admin dashboard
+      if (activeTab === 'order' || activeTab === 'dashboard') {
+        setActiveTab('admin_dashboard');
+      }
+    } else if (user.role === 'bowser_driver') {
+      // Drivers should default to driver view
+      if (activeTab === 'order' || activeTab.startsWith('admin_')) {
+        setActiveTab('driver_view');
+      }
+    } else {
+      // Regular customers should default to order view if on admin tabs
+      if (activeTab.startsWith('admin_')) {
+        setActiveTab('order');
+      }
+    }
+  }, [user?.role, activeTab, setActiveTab]);
 
   if (!user) {
     return (

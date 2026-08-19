@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useOrder } from '../../context/OrderContext';
 import { useAuth } from '../../context/AuthContext';
-import { INDIAN_CITIES } from '../../mockData';
 import {
   Fuel,
   MapPin,
@@ -20,6 +19,7 @@ import {
 
 export const Header: React.FC = () => {
   const {
+    cities,
     selectedCity,
     setSelectedCity,
     activeTab,
@@ -43,33 +43,6 @@ export const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-xs">
-      {/* 1. Live Indian Fuel Rates Ticker */}
-      <div className="bg-gray-100/90 border-b border-gray-200 px-4 py-1.5 text-[11px] text-gray-600 flex items-center justify-between overflow-x-auto">
-        <div className="flex items-center space-x-4 min-w-max">
-          <div className="flex items-center space-x-1.5 text-amber-600 font-bold">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>Live Fuel Rates ({selectedCity.cityName}):</span>
-          </div>
-          <div className="flex items-center space-x-3 text-gray-700 font-mono">
-            <span>HSD Diesel: <strong className="text-gray-900">₹{selectedCity.dieselRate.toFixed(2)}/L</strong></span>
-            <span className="text-gray-300">|</span>
-            <span>Petrol (MS): <strong className="text-gray-900">₹{selectedCity.petrolRate.toFixed(2)}/L</strong></span>
-            <span className="text-gray-300">|</span>
-            <span>Bio-Diesel B20: <strong className="text-emerald-700">₹{selectedCity.biodieselRate.toFixed(2)}/L</strong></span>
-            <span className="text-gray-300">|</span>
-            <span>Mobile EV Fast: <strong className="text-cyan-700">₹{selectedCity.evRate.toFixed(2)}/kWh</strong></span>
-          </div>
-        </div>
-
-        <div className="hidden lg:flex items-center space-x-3 text-[10px] text-gray-500 min-w-max pl-4">
-          <span className="flex items-center space-x-1 text-emerald-700 font-semibold">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Govt. PESO Approved (Govt of India)</span>
-          </span>
-          <span className="text-gray-300">•</span>
-          <span>Zero Pilferage Certified</span>
-        </div>
-      </div>
 
       {/* 2. Main Navigation Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -112,7 +85,7 @@ export const Header: React.FC = () => {
                   <span className="text-[10px] uppercase tracking-wider text-gray-400 font-bold px-3 py-1 block">
                     Select Active Hub
                   </span>
-                  {INDIAN_CITIES.map((city) => (
+                  {cities.map((city) => (
                     <button
                       key={city.cityName}
                       type="button"
@@ -137,7 +110,9 @@ export const Header: React.FC = () => {
 
           {/* Navigation Tab Pills */}
           <nav className="hidden md:flex items-center space-x-1">
-            <button
+            {user?.role !== 'admin' && (
+              <>
+                <button
               type="button"
               onClick={() => setActiveTab('order')}
               className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-all ${
@@ -217,9 +192,11 @@ export const Header: React.FC = () => {
               <MapPin className="w-4 h-4 text-blue-400" />
               <span>Station Finder</span>
             </button>
+              </>
+            )}
 
             {/* Admin Controls — only visible to admin */}
-            {(user?.email === 'admin@fuelgo.com' || user?.email === 'pullagurapawanteja@gmail.com' || user?.phone === '+917989154858' || user?.phone === '7989154858') && (
+            {user?.role === 'admin' && (
               <>
                 <button
                   type="button"
@@ -275,7 +252,7 @@ export const Header: React.FC = () => {
                   <div className="text-right hidden sm:block">
                     <div className="text-xs font-bold text-gray-900 leading-tight">{user.name.split(' ')[0]}</div>
                     <div className="text-[10px] text-amber-600 font-medium capitalize">
-                      {user.role === 'bowser_driver' ? 'Bowser Operator' : 'B2B Fleet Lead'}
+                      {user.role === 'admin' ? 'Admin User' : (user.role === 'bowser_driver' ? 'Bowser Operator' : 'B2B Fleet Lead')}
                     </div>
                   </div>
                   <img
@@ -296,8 +273,9 @@ export const Header: React.FC = () => {
                       </span>
                     </div>
 
-                    <div className="space-y-1 text-xs">
-                      <span className="text-[10px] uppercase font-bold text-gray-400 block">Switch Platform Role</span>
+                    {user.role !== 'admin' && (
+                      <div className="space-y-1 text-xs">
+                        <span className="text-[10px] uppercase font-bold text-gray-400 block">Switch Platform Role</span>
                       <button
                         type="button"
                         onClick={() => {
@@ -324,9 +302,10 @@ export const Header: React.FC = () => {
                         }`}
                       >
                         <Truck className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>Bowser Driver / Operator</span>
-                      </button>
-                    </div>
+                          <span>Bowser Driver / Operator</span>
+                        </button>
+                      </div>
+                    )}
 
                     <div className="border-t border-gray-100 pt-2 flex items-center justify-between">
                       <button
@@ -385,49 +364,79 @@ export const Header: React.FC = () => {
 
       {/* Mobile Navigation Row */}
       <div className="flex md:hidden items-center justify-around bg-white border-t border-gray-200 py-2 px-1 text-[10px]">
-        <button
-          onClick={() => setActiveTab('order')}
-          className={`flex flex-col items-center py-1 px-2 rounded-lg ${activeTab === 'order' ? 'text-amber-600 font-bold' : 'text-gray-500'}`}
-        >
-          <Fuel className="w-4 h-4" />
-          <span>Order</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('tracking')}
-          className={`flex flex-col items-center py-1 px-2 rounded-lg relative ${activeTab === 'tracking' ? 'text-amber-600 font-bold' : 'text-gray-500'}`}
-        >
-          <Truck className="w-4 h-4" />
-          <span>Live GPS</span>
-          {isOrderActive && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 absolute top-0 right-2"></span>}
-        </button>
-        <button
-          onClick={() => setActiveTab('dashboard')}
-          className={`flex flex-col items-center py-1 px-2 rounded-lg ${activeTab === 'dashboard' ? 'text-amber-600 font-bold' : 'text-gray-500'}`}
-        >
-          <BarChart3 className="w-4 h-4" />
-          <span>Fleet Hub</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('driver_view')}
-          className={`flex flex-col items-center py-1 px-2 rounded-lg ${activeTab === 'driver_view' ? 'text-emerald-600 font-bold' : 'text-gray-500'}`}
-        >
-          <Truck className="w-4 h-4 text-emerald-600" />
-          <span>Driver</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('ai_advisor')}
-          className={`flex flex-col items-center py-1 px-2 rounded-lg ${activeTab === 'ai_advisor' ? 'text-indigo-600 font-bold' : 'text-gray-500'}`}
-        >
-          <Sparkles className="w-4 h-4 text-amber-500" />
-          <span>AI Plan</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('nearby_stations')}
-          className={`flex flex-col items-center py-1 px-2 rounded-lg ${activeTab === 'nearby_stations' ? 'text-blue-600 font-bold' : 'text-gray-500'}`}
-        >
-          <MapPin className="w-4 h-4 text-blue-400" />
-          <span>Stations</span>
-        </button>
+        {user?.role !== 'admin' && (
+          <>
+            <button
+              onClick={() => setActiveTab('order')}
+              className={`flex flex-col items-center py-1 px-2 rounded-lg ${activeTab === 'order' ? 'text-amber-600 font-bold' : 'text-gray-500'}`}
+            >
+              <Fuel className="w-4 h-4" />
+              <span>Order</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('tracking')}
+              className={`flex flex-col items-center py-1 px-2 rounded-lg relative ${activeTab === 'tracking' ? 'text-amber-600 font-bold' : 'text-gray-500'}`}
+            >
+              <Truck className="w-4 h-4" />
+              <span>Live GPS</span>
+              {isOrderActive && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 absolute top-0 right-2"></span>}
+            </button>
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className={`flex flex-col items-center py-1 px-2 rounded-lg ${activeTab === 'dashboard' ? 'text-amber-600 font-bold' : 'text-gray-500'}`}
+            >
+              <BarChart3 className="w-4 h-4" />
+              <span>Fleet Hub</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('driver_view')}
+              className={`flex flex-col items-center py-1 px-2 rounded-lg ${activeTab === 'driver_view' ? 'text-emerald-600 font-bold' : 'text-gray-500'}`}
+            >
+              <Truck className="w-4 h-4 text-emerald-600" />
+              <span>Driver</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('ai_advisor')}
+              className={`flex flex-col items-center py-1 px-2 rounded-lg ${activeTab === 'ai_advisor' ? 'text-indigo-600 font-bold' : 'text-gray-500'}`}
+            >
+              <Sparkles className="w-4 h-4 text-amber-500" />
+              <span>AI Plan</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('nearby_stations')}
+              className={`flex flex-col items-center py-1 px-2 rounded-lg ${activeTab === 'nearby_stations' ? 'text-blue-600 font-bold' : 'text-gray-500'}`}
+            >
+              <MapPin className="w-4 h-4 text-blue-400" />
+              <span>Stations</span>
+            </button>
+          </>
+        )}
+        
+        {user?.role === 'admin' && (
+          <>
+            <button
+              onClick={() => setActiveTab('admin_dashboard')}
+              className={`flex flex-col items-center py-1 px-2 rounded-lg ${activeTab === 'admin_dashboard' ? 'text-rose-600 font-bold' : 'text-gray-500'}`}
+            >
+              <ShieldCheck className="w-4 h-4" />
+              <span>Dashboard</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('admin_payments')}
+              className={`flex flex-col items-center py-1 px-2 rounded-lg ${activeTab === 'admin_payments' ? 'text-emerald-600 font-bold' : 'text-gray-500'}`}
+            >
+              <ShieldCheck className="w-4 h-4" />
+              <span>UPI Admin</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('admin_logs')}
+              className={`flex flex-col items-center py-1 px-2 rounded-lg ${activeTab === 'admin_logs' ? 'text-indigo-600 font-bold' : 'text-gray-500'}`}
+            >
+              <ShieldCheck className="w-4 h-4" />
+              <span>Logs</span>
+            </button>
+          </>
+        )}
       </div>
     </header>
   );

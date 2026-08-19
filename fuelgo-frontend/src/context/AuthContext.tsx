@@ -3,7 +3,7 @@ import { UserProfile, UserRole, DeliveryAddress, AssetVehicle } from '../types';
 import { DEMO_USER_B2B, INITIAL_SAVED_ADDRESSES, INITIAL_ASSETS } from '../mockData';
 // Firebase removed for MSG91
 
-const API_BASE = `${import.meta.env.VITE_API_URL || ''}/api/auth`;
+const API_BASE = `${import.meta.env.VITE_API_URL || 'http://10.205.182.110:3000'}/api/auth`;
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -80,7 +80,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       name: backendUser.name,
       email: backendUser.email,
       phone: backendUser.phone || '',
-      role: role,
+      role: backendUser.role || role,
       companyName: 'Apex Infra Pvt Ltd',
       gstin: '29AAACA8821R1ZK',
       avatarUrl: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(backendUser.name),
@@ -130,9 +130,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         savedAssets: INITIAL_ASSETS,
         isVerified: true,
         pesoSafetyCertified: true,
-      }
+      },
+      'admin@fuelgo.com': {
+        id: 'admin-1',
+        name: 'Admin User',
+        email: 'admin@fuelgo.com',
+        phone: '7989154858',
+        role: 'admin',
+        companyName: 'FuelGo HQ',
+        gstin: '',
+        avatarUrl: 'https://ui-avatars.com/api/?name=Admin+User&background=dc2626&color=fff',
+        walletBalance: 0,
+        creditLimit: 0,
+        creditUsed: 0,
+        savedAddresses: INITIAL_SAVED_ADDRESSES,
+        savedAssets: INITIAL_ASSETS,
+        isVerified: true,
+        pesoSafetyCertified: true,
+      },
     };
-    if (DEMO_USERS[identifier] && (pass === 'demo123' || pass === 'Demo@123')) {
+    if (DEMO_USERS[identifier] && (pass === 'demo123' || pass === 'Demo@123' || pass === 'password123')) {
       localStorage.setItem('fuelgo_token', 'mock_token_' + Date.now());
       setUser(DEMO_USERS[identifier]);
       setAuthModalOpen(false);
@@ -175,12 +192,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       setOtpCooldownSeconds(30);
-      setPendingAuthTarget((prev) => ({
-        identifier: phone,
-        name: prev?.name,
-        role: prev?.role || 'b2b_fleet',
-        password: prev?.password,
-      }));
       
       return "Sent";
     } catch (error: any) {
@@ -194,6 +205,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     try {
       const phone = pendingAuthTarget.identifier;
+
+      // ── Demo OTP bypass (no backend needed) ──
+      const DEMO_USERS: Record<string, UserProfile> = {
+        'vikram.singhania@indialogistics.co.in': {
+          id: 'demo-b2b-1', name: 'Vikram Singhania', email: 'vikram.singhania@indialogistics.co.in', phone: '9820045910', role: 'b2b_fleet', companyName: 'Apex Logistics Pvt Ltd', gstin: '29AAACA8821R1ZK', avatarUrl: 'https://ui-avatars.com/api/?name=Vikram+Singhania', walletBalance: 25000, creditLimit: 300000, creditUsed: 0, savedAddresses: INITIAL_SAVED_ADDRESSES, savedAssets: INITIAL_ASSETS, isVerified: true, pesoSafetyCertified: true,
+        },
+        'rajesh.driver@fuelgo.in': {
+          id: 'demo-driver-1', name: 'Rajesh Kumar Yadav', email: 'rajesh.driver@fuelgo.in', phone: '9886077123', role: 'bowser_driver', companyName: 'FuelGo Bowser Fleet', gstin: '', avatarUrl: 'https://ui-avatars.com/api/?name=Rajesh+Kumar', walletBalance: 5000, creditLimit: 0, creditUsed: 0, savedAddresses: INITIAL_SAVED_ADDRESSES, savedAssets: INITIAL_ASSETS, isVerified: true, pesoSafetyCertified: true,
+        },
+        'admin@fuelgo.com': {
+          id: 'admin-1', name: 'Admin User', email: 'admin@fuelgo.com', phone: '7989154858', role: 'admin', companyName: 'FuelGo HQ', gstin: '', avatarUrl: 'https://ui-avatars.com/api/?name=Admin+User', walletBalance: 0, creditLimit: 0, creditUsed: 0, savedAddresses: INITIAL_SAVED_ADDRESSES, savedAssets: INITIAL_ASSETS, isVerified: true, pesoSafetyCertified: true,
+        }
+      };
+
+      if (DEMO_USERS[phone]) {
+        const userToLogin = DEMO_USERS[phone];
+        localStorage.setItem('fuelgo_token', 'mock_token_' + Date.now());
+        setUser(userToLogin);
+        setActiveOtpCode(null);
+        setConfirmationResult(null);
+        setAuthModalOpen(false);
+        return true;
+      }
 
       // 1. Verify OTP with Backend (which calls MSG91)
       const verifyRes = await fetch(`${API_BASE}/verify-otp`, {
