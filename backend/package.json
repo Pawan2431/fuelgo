@@ -1,0 +1,29 @@
+{
+  "name": "fuelgo-backend",
+  "version": "1.0.0",
+  "description": "Backend for FuelGo app",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "@google-cloud/logging-winston": "^7.0.1",
+    "@supabase/supabase-js": "^2.110.8",
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.5.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "exceljs": "^4.4.0",
+    "express": "^4.21.1",
+    "google-auth-library": "^11.0.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^9.9.3",
+    "node-fetch": "^2.7.0",
+    "stripe": "^22.5.0",
+    "winston": "^3.19.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  }
+}

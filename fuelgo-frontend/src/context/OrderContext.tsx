@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { FuelOrder, FuelType, IndianCityRate, DeliveryAddress, AssetVehicle, BowserDriver } from '../types';
 import { INDIAN_CITIES, INITIAL_ORDERS, DEMO_BOWSERS, FUEL_PRODUCTS } from '../mockData';
 import confetti from 'canvas-confetti';
+import { supabase } from '../supabaseClient';
 
 interface OrderContextType {
   selectedCity: IndianCityRate;
@@ -41,7 +42,7 @@ interface OrderContextType {
   setViewingQrOrder: (order: FuelOrder | null) => void;
 }
 
-export type ActiveTab = 'tracking' | 'order' | 'dashboard' | 'driver_view' | 'ai_advisor' | 'nearby_stations';
+export type ActiveTab = 'tracking' | 'order' | 'dashboard' | 'driver_view' | 'ai_advisor' | 'nearby_stations' | 'admin_payments' | 'admin_dashboard' | 'admin_logs';
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
 
@@ -148,7 +149,21 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [selectedCity]);
 
-  // Live GPS movement animation along waypoint toward destination
+  // Reset bowser telemetry to be near the active order whenever a new order is selected
+  useEffect(() => {
+    if (activeOrder) {
+      setBowserTelemetry(prev => ({
+        ...prev,
+        lat: activeOrder.deliveryAddress.lat - 0.03, // Start ~4km away
+        lng: activeOrder.deliveryAddress.lng - 0.03,
+        distanceRemainingKm: 6.5,
+        etaMinutes: 18,
+        speed: 38
+      }));
+    }
+  }, [activeOrder?.id, activeOrder?.deliveryAddress.lat, activeOrder?.deliveryAddress.lng]);
+
+  // Live GPS movement via Supabase WebSockets (Realtime)
   useEffect(() => {
     if (!activeOrder || activeOrder.status === 'completed' || activeOrder.status === 'cancelled') {
       return;
@@ -157,19 +172,17 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const destLat = activeOrder.deliveryAddress.lat;
     const destLng = activeOrder.deliveryAddress.lng;
 
-    const interval = setInterval(() => {
+    // We still keep a slow local interval purely to simulate flow rate for the dispensing UI.
+    // The GPS movement is handled purely by Supabase events.
+    const dispensingInterval = setInterval(() => {
       setBowserTelemetry((prev) => {
         if (prev.isDispensing) {
-          // Dispensing simulation
           const targetQty = activeOrder.quantity;
           const increment = 3.5;
           const nextDispensed = Math.min(targetQty, prev.dispensedLitres + increment);
           
           if (nextDispensed >= targetQty && prev.dispensedLitres < targetQty) {
-            // Dispensing finished!
-            setTimeout(() => {
-              completeDispensingSimulation(activeOrder.id);
-            }, 1000);
+            setTimeout(() => completeDispensingSimulation(activeOrder.id), 1000);
           }
 
           return {
@@ -178,43 +191,52 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             flowRateLpm: nextDispensed >= targetQty ? 0 : 68 + Math.floor(Math.random() * 5),
           };
         }
-
-        // Bowser is in transit
-        const dLat = destLat - prev.lat;
-        const dLng = destLng - prev.lng;
-        const dist = Math.sqrt(dLat * dLat + dLng * dLng);
-
-        if (dist < 0.002) {
-          // Arrived at customer site!
-          return {
-            ...prev,
-            lat: destLat,
-            lng: destLng,
-            speed: 0,
-            distanceRemainingKm: 0.1,
-            etaMinutes: 1,
-          };
-        }
-
-        const step = 0.00035; // gentle realistic driving step
-        const nextLat = prev.lat + (dLat / dist) * step + (Math.random() - 0.5) * 0.00005;
-        const nextLng = prev.lng + (dLng / dist) * step + (Math.random() - 0.5) * 0.00005;
-        const remainingKm = Math.max(0.2, (dist * 111).toFixed(1) as any * 1);
-        const nextEta = Math.max(1, Math.ceil(remainingKm * 2.8));
-        const currentSpeed = Math.floor(32 + Math.random() * 12);
-
-        return {
-          ...prev,
-          lat: nextLat,
-          lng: nextLng,
-          speed: currentSpeed,
-          distanceRemainingKm: remainingKm,
-          etaMinutes: nextEta,
-        };
+        return prev;
       });
     }, 1800);
 
-    return () => clearInterval(interval);
+    // Subscribe to live GPS updates from the Supabase `orders` table
+    const trackingChannel = supabase
+      .channel(`tracking-order-${activeOrder.id}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'orders',
+        filter: `id=eq.${activeOrder.id}`
+      }, (payload) => {
+        const newData = payload.new as any;
+        if (newData.agent_lat && newData.agent_lng) {
+          setBowserTelemetry((prev) => {
+            // Recalculate distance and ETA based on new real coordinates
+            const dLat = destLat - newData.agent_lat;
+            const dLng = destLng - newData.agent_lng;
+            const dist = Math.sqrt(dLat * dLat + dLng * dLng);
+            
+            // Arrived
+            if (dist < 0.002) {
+              return { ...prev, lat: newData.agent_lat, lng: newData.agent_lng, speed: 0, distanceRemainingKm: 0.1, etaMinutes: 1 };
+            }
+
+            const remainingKm = Math.max(0.1, (dist * 111));
+            const nextEta = Math.max(1, Math.ceil(remainingKm * 2.8));
+            
+            return {
+              ...prev,
+              lat: newData.agent_lat,
+              lng: newData.agent_lng,
+              speed: 35, // Simulated fixed speed unless provided by backend
+              distanceRemainingKm: Number(remainingKm.toFixed(1)),
+              etaMinutes: nextEta,
+            };
+          });
+        }
+      })
+      .subscribe();
+
+    return () => {
+      clearInterval(dispensingInterval);
+      supabase.removeChannel(trackingChannel);
+    };
   }, [activeOrder]);
 
   const startDispensingSimulation = (orderId: string) => {
@@ -363,7 +385,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       delivery_lng: orderData.deliveryAddress?.lng || 79.9328
     };
 
-    const apiUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/orders`;
+    const apiUrl = `${import.meta.env.VITE_API_URL || ''}/api/orders`;
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {

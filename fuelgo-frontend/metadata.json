@@ -1,0 +1,6 @@
+{
+  "name": "FuelGo - Fuel Delivery SaaS",
+  "description": "Doorstep on-demand fuel delivery SaaS platform for India with live GPS bowser tracking, B2B fleet & DG set refueling, OTP authentication, and smart dispatch.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

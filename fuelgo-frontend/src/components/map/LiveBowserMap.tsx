@@ -173,24 +173,40 @@ export const LiveBowserMap: React.FC = () => {
       destMarkerRef.current = L.marker([destLat, destLng], { icon: customDestIcon }).addTo(map);
     }
 
-    // Update Polyline route
-    const routeCoords: [number, number][] = [
-      [bowserLat, bowserLng],
-      // Simulated realistic turn waypoint
-      [(bowserLat + destLat) / 2 + 0.001, (bowserLng + destLng) / 2 - 0.0015],
-      [destLat, destLng],
-    ];
+    // Fetch realistic road route from OSRM
+    const fetchRoute = async () => {
+      try {
+        const response = await fetch(`https://router.project-osrm.org/route/v1/driving/${bowserLng},${bowserLat};${destLng},${destLat}?overview=full&geometries=geojson`);
+        const data = await response.json();
+        
+        if (data.routes && data.routes[0]) {
+          const coords = data.routes[0].geometry.coordinates.map((c: [number, number]) => [c[1], c[0]]); // OSRM returns [lng, lat]
+          
+          if (polylineRef.current) {
+            polylineRef.current.setLatLngs(coords);
+          } else {
+            polylineRef.current = L.polyline(coords, {
+              color: '#10b981', // Zomato-style thick green/teal line
+              weight: 5,
+              opacity: 0.9,
+              lineCap: 'round',
+              lineJoin: 'round'
+            }).addTo(map);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch OSRM route", err);
+        // Fallback to straight line
+        const fallbackCoords: [number, number][] = [[bowserLat, bowserLng], [destLat, destLng]];
+        if (polylineRef.current) {
+          polylineRef.current.setLatLngs(fallbackCoords);
+        } else {
+          polylineRef.current = L.polyline(fallbackCoords, { color: '#f59e0b', weight: 4, dashArray: '8, 8' }).addTo(map);
+        }
+      }
+    };
 
-    if (polylineRef.current) {
-      polylineRef.current.setLatLngs(routeCoords);
-    } else {
-      polylineRef.current = L.polyline(routeCoords, {
-        color: '#f59e0b',
-        weight: 4,
-        opacity: 0.85,
-        dashArray: '8, 8',
-      }).addTo(map);
-    }
+    fetchRoute();
   }, [bowserTelemetry, activeOrder]);
 
   const recenterMap = () => {

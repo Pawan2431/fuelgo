@@ -5,6 +5,10 @@ import { FuelType, AssetVehicle, DeliveryAddress, FuelOrder } from '../../types'
 import { FUEL_PRODUCTS } from '../../mockData';
 import { SecureDeliveryQrPass } from './SecureDeliveryQrPass';
 import { LandmarkAddressForm } from './LandmarkAddressForm';
+import { PaymentForm } from './PaymentForm';
+import { UpiPaymentPage } from '../payment/UpiPaymentPage';
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
 import {
   Fuel,
   Droplets,
@@ -28,6 +32,9 @@ import {
   Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+
+// Replace with your own Stripe Publishable Key
+const stripePromise = loadStripe('pk_test_TYooMQauvdEDq54NiTphI7jx');
 
 export const FuelOrderWizard: React.FC = () => {
   const {
@@ -75,7 +82,7 @@ export const FuelOrderWizard: React.FC = () => {
   );
 
   const [deliverySlot, setDeliverySlot] = useState<string>('Express Delivery (Under 45 mins)');
-  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'wallet'>('cod');
+  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'wallet' | 'card' | 'upi'>('cod');
   const [pesoEarthingChecked, setPesoEarthingChecked] = useState(true);
   const [pesoFireExtChecked, setPesoFireExtChecked] = useState(true);
   const [isAddingAddress, setIsAddingAddress] = useState(false);
@@ -99,8 +106,8 @@ export const FuelOrderWizard: React.FC = () => {
   const unitPrice = selectedFuel.pricePerUnit;
   const fuelTotal = quantity * unitPrice;
   const deliveryFee = 0; // free doorstep delivery promo
-  const platformFee = 99;
-  const gstAmount = Math.round((fuelTotal + platformFee) * 0.18);
+  const platformFee = quantity < 50 ? 0 : 99; // Waive PESO fee for small retail/bike orders
+  const gstAmount = Math.round(platformFee * 0.18); // GST applies to service fee, not the fuel itself
   const totalPayable = fuelTotal + deliveryFee + platformFee + gstAmount;
 
   const handleSaveNewAddress = (e: React.FormEvent) => {
@@ -370,7 +377,7 @@ export const FuelOrderWizard: React.FC = () => {
                     type="range"
                     min={selectedFuel.minOrderQty}
                     max={selectedFuel.maxOrderQty}
-                    step={selectedFuel.unit === 'kWh' ? 5 : 25}
+                    step={selectedFuel.unit === 'kWh' ? 5 : 1}
                     value={quantity}
                     onChange={(e) => setQuantity(Number(e.target.value))}
                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
@@ -378,7 +385,7 @@ export const FuelOrderWizard: React.FC = () => {
 
                   {/* Preset Pills */}
                   <div className="flex flex-wrap gap-2 pt-1">
-                    {(selectedFuel.unit === 'kWh' ? [20, 40, 60, 100, 150] : [50, 100, 250, 500, 1000, 3000]).map(
+                    {(selectedFuel.unit === 'kWh' ? [20, 40, 60, 100, 150] : [1, 2, 5, 50, 100, 250]).map(
                       (preset) => (
                         <button
                           key={preset}
@@ -740,10 +747,22 @@ export const FuelOrderWizard: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {[
                     {
+                      id: 'upi',
+                      name: 'UPI / Bank Transfer',
+                      desc: '📱 GPay, PhonePe, Paytm — Scan QR & submit UTR for admin verification.',
+                      icon: <QrCode className="w-5 h-5 text-emerald-600" />,
+                    },
+                    {
                       id: 'wallet',
                       name: 'FuelGo Prepaid Fleet Wallet',
                       desc: `Balance: ₹${(user?.walletBalance || 48500).toLocaleString('en-IN')}`,
                       icon: <CreditCard className="w-5 h-5 text-indigo-600" />,
+                    },
+                    {
+                      id: 'card',
+                      name: 'Credit / Debit Card',
+                      desc: 'Pay securely with Stripe',
+                      icon: <CreditCard className="w-5 h-5 text-blue-600" />,
                     },
                     {
                       id: 'cod',
@@ -774,6 +793,29 @@ export const FuelOrderWizard: React.FC = () => {
                   })}
                 </div>
 
+                {/* UPI Payment Page */}
+                {paymentMethod === 'upi' && (
+                  <UpiPaymentPage
+                    orderId={Number(activeOrder?.id) || 0}
+                    amount={totalPayable}
+                    onSuccess={() => handlePlaceOrder()}
+                    onCancel={() => setPaymentMethod('cod')}
+                  />
+                )}
+
+                {/* Stripe Payment Form */}
+                {paymentMethod === 'card' && (
+                  <Elements stripe={stripePromise}>
+                    <PaymentForm 
+                      amount={totalPayable}
+                      onSuccess={(pi) => {
+                        handlePlaceOrder();
+                      }}
+                      onCancel={() => setPaymentMethod('cod')}
+                    />
+                  </Elements>
+                )}
+
                 {/* GSTIN Preview */}
                 <div className="p-3.5 bg-gray-50 border border-gray-200 rounded-2xl flex items-center justify-between text-xs">
                   <div>
@@ -797,8 +839,8 @@ export const FuelOrderWizard: React.FC = () => {
                   <button
                     type="button"
                     onClick={handlePlaceOrder}
-                    disabled={isPlacingOrder}
-                    className={`px-8 py-3.5 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-gray-950 font-extrabold rounded-xl text-sm shadow-md shadow-amber-500/30 flex items-center space-x-2 transition-all transform hover:scale-[1.01] ${isPlacingOrder ? 'opacity-70 cursor-not-allowed' : ''}`}
+                    disabled={isPlacingOrder || paymentMethod === 'card'}
+                    className={`px-8 py-3.5 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-gray-950 font-extrabold rounded-xl text-sm shadow-md shadow-amber-500/30 flex items-center space-x-2 transition-all transform hover:scale-[1.01] ${(isPlacingOrder || paymentMethod === 'card') ? 'opacity-70 cursor-not-allowed' : ''}`}
                   >
                     {isPlacingOrder ? (
                        <Loader2 className="w-4 h-4 animate-spin" />

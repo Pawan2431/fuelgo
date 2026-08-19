@@ -1,0 +1,126 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap');
+
+:root {
+  --primary: #E8520A;
+  --primary-soft: #FFF1EB;
+  --surface: #FAFAF8;
+  --card: #FFFFFF;
+  --text: #2D2A26;
+  --text-muted: #9B9490;
+  --border: #F0EDEA;
+  --success: #3BAF75;
+  --error: #E54D4D;
+  --accent-blue: #4A90D9;
+  
+  --font-head: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: var(--text);
+  font-family: var(--font-body);
+  color: var(--text);
+  overflow-x: hidden;
+}
+
+.app-viewport {
+  max-width: 480px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: var(--surface);
+  position: relative;
+  box-shadow: 0 0 50px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 110px;
+}
+
+/* Field errors */
+.field-error {
+  color: var(--error);
+  font-size: 11px;
+  margin-top: 4px;
+  display: block;
+}
+
+/* Typography Helpers */
+.title {
+  font-family: var(--font-head);
+  font-weight: 800;
+  color: var(--text);
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.text-primary { color: var(--primary); }
+.text-success { color: var(--success); }
+
+/* Common Buttons */
+.btn-primary {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  background: var(--primary);
+  color: white;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-primary:hover:not(:disabled) { background: #FF6820; }
+.btn-primary:active:not(:disabled) { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.7; cursor: not-allowed; }
+
+.btn-secondary {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-secondary:hover { background: var(--surface); }
+
+/* Common Layout */
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.section-padding { padding: 20px 20px 100px; }
+
+/* Forms */
+.form-card {
+  background: var(--card);
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  padding: 24px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+}

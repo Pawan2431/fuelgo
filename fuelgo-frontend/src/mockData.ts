@@ -111,7 +111,7 @@ export const FUEL_PRODUCTS: FuelProduct[] = [
     octaneOrGrade: 'Cetane Index ≥51',
     color: 'emerald',
     accentBadge: 'B2B Favorite',
-    minOrderQty: 50,
+    minOrderQty: 1,
     maxOrderQty: 10000,
     iconName: 'Fuel',
     popularFor: 'Commercial DG Sets, Heavy Fleets & Construction'
@@ -127,7 +127,7 @@ export const FUEL_PRODUCTS: FuelProduct[] = [
     octaneOrGrade: '91 Octane (E20)',
     color: 'amber',
     accentBadge: 'High Octane',
-    minOrderQty: 20,
+    minOrderQty: 1,
     maxOrderQty: 2000,
     iconName: 'Flame',
     popularFor: 'Passenger Fleets, Executive Vans & Bikes'

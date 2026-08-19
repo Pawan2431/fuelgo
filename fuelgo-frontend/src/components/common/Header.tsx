@@ -217,6 +217,50 @@ export const Header: React.FC = () => {
               <MapPin className="w-4 h-4 text-blue-400" />
               <span>Station Finder</span>
             </button>
+
+            {/* Admin Controls — only visible to admin */}
+            {(user?.email === 'admin@fuelgo.com' || user?.email === 'pullagurapawanteja@gmail.com' || user?.phone === '+917989154858' || user?.phone === '7989154858') && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('admin_dashboard')}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-all ${
+                    activeTab === 'admin_dashboard'
+                      ? 'bg-rose-700 text-white font-bold shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+                >
+                  <ShieldCheck className={`w-4 h-4 ${activeTab === 'admin_dashboard' ? 'text-white' : 'text-rose-600'}`} />
+                  <span>Admin Dashboard</span>
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('admin_payments')}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-all ${
+                    activeTab === 'admin_payments'
+                      ? 'bg-emerald-700 text-white font-bold shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+                >
+                  <ShieldCheck className={`w-4 h-4 ${activeTab === 'admin_payments' ? 'text-white' : 'text-emerald-600'}`} />
+                  <span>UPI Admin</span>
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('admin_logs')}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-all ${
+                    activeTab === 'admin_logs'
+                      ? 'bg-indigo-700 text-white font-bold shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+                >
+                  <ShieldCheck className={`w-4 h-4 ${activeTab === 'admin_logs' ? 'text-white' : 'text-indigo-600'}`} />
+                  <span>System Logs</span>
+                </button>
+              </>
+            )}
           </nav>
 
           {/* User Profile / Auth Button */}

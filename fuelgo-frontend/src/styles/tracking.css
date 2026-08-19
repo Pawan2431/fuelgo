@@ -1,0 +1,85 @@
+.track-map-container {
+  width: 100%;
+  height: 320px;
+  background: var(--surface);
+  position: relative;
+  z-index: 10;
+}
+
+.track-info-card {
+  background: var(--card);
+  border-radius: 24px 24px 0 0;
+  padding: 24px;
+  position: relative;
+  top: -24px;
+  z-index: 20;
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.08);
+}
+
+.eta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.eta-time { font-family: var(--font-head); font-weight: 800; font-size: 28px; color: var(--text); }
+.eta-sub { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+.order-pill { background: var(--primary-soft); color: var(--primary); padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; font-family: var(--font-head); }
+
+.driver-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.driver-avatar { width: 50px; height: 50px; border-radius: 25px; background: #E2E8F0; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+.driver-name { font-family: var(--font-head); font-weight: 800; font-size: 16px; color: var(--text); }
+.driver-vehicle { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+.action-btns { display: flex; gap: 8px; margin-left: auto; }
+.action-btn { width: 40px; height: 40px; border-radius: 20px; border: none; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text); }
+.action-btn.call { color: var(--success); }
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-left: 10px;
+  position: relative;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 17px;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  background: var(--border);
+  z-index: 1;
+}
+
+.timeline-item {
+  display: flex;
+  gap: 16px;
+  position: relative;
+  z-index: 2;
+}
+
+.timeline-dot {
+  width: 16px; height: 16px; border-radius: 8px; background: white; border: 4px solid var(--border); margin-top: 2px; flex-shrink: 0;
+}
+.timeline-item.active .timeline-dot { border-color: var(--primary); }
+.timeline-item.done .timeline-dot { border-color: var(--success); background: var(--success); }
+
+.timeline-content { flex: 1; }
+.timeline-title { font-weight: 700; font-size: 14px; color: var(--text); }
+.timeline-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }

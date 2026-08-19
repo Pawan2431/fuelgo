@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { UserRole } from '../../types';
-import { GoogleLogin } from '@react-oauth/google';
+import { GoogleLogin, useGoogleLogin } from '@react-oauth/google';
 import {
   X,
   Lock,
@@ -16,7 +16,9 @@ import {
   CheckCircle2,
   RotateCw,
   Sparkles,
-  AlertCircle
+  AlertCircle,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -36,9 +38,24 @@ export const AuthModal: React.FC = () => {
     activeOtpCode,
     otpCooldownSeconds,
     setPendingAuthTarget,
+    user,
   } = useAuth();
 
   // Form states
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    if (credentialResponse.credential) {
+      try {
+        setLoading(true);
+        setErrorMessage('');
+        await loginWithGoogle(credentialResponse.credential);
+      } catch (err: any) {
+        setErrorMessage('Google Sign-In could not be completed. Please try the Quick Demo Login below.');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -59,6 +76,9 @@ export const AuthModal: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successBanner, setSuccessBanner] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+
 
   useEffect(() => {
     if (authModalOpen) {
@@ -120,8 +140,9 @@ export const AuthModal: React.FC = () => {
   };
 
   const handleSendOtpFlow = async (isSignup = false) => {
-    if (!identifier) {
-      setErrorMessage('Please enter mobile number or email');
+    const isEmail = identifier.includes('@');
+    if (!identifier || (!isEmail && identifier.replace(/\D/g, '').length < 10)) {
+      setErrorMessage('Please enter a valid email or 10-digit mobile number');
       return;
     }
     setLoading(true);
@@ -131,13 +152,13 @@ export const AuthModal: React.FC = () => {
         identifier,
         name: isSignup ? name : undefined,
         role: isSignup ? role : 'b2b_fleet',
+        password: isSignup ? password : undefined,
       });
-      const generatedOtp = await sendOtp(identifier);
-      setSuccessBanner(`SMS OTP sent: ${generatedOtp}`);
+      await sendOtp(identifier);
       setOtpDigits(['', '', '', '', '', '']);
       setAuthModalView('otp_verify');
-    } catch (e) {
-      setErrorMessage('Failed to send OTP. Please try again.');
+    } catch (e: any) {
+      setErrorMessage(e.message || 'Failed to send OTP. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -155,7 +176,7 @@ export const AuthModal: React.FC = () => {
     try {
       const ok = await verifyOtp(code);
       if (!ok) {
-        setErrorMessage('Invalid OTP code. Please enter the code shown in the banner.');
+        setErrorMessage('Invalid OTP code. Please try again.');
       }
     } catch (e: any) {
       setErrorMessage(e.message || 'Verification failed. Try again.');
@@ -212,18 +233,15 @@ export const AuthModal: React.FC = () => {
     }
   };
 
-  const fillTestOtp = () => {
-    const code = activeOtpCode || '482910';
-    setOtpDigits(code.split(''));
-  };
+  // Removed fillTestOtp since we are using Firebase real SMS
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
+    <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto ${!user ? 'bg-gray-50' : 'bg-black/50 backdrop-blur-sm'}`}>
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 15 }}
-        className="relative w-full max-w-lg bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden text-gray-900 my-8"
+        className={`relative w-full max-w-lg bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden text-gray-900 my-8 ${!user ? 'shadow-2xl' : ''}`}
       >
         {/* Header Ribbon */}
         <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
@@ -239,32 +257,15 @@ export const AuthModal: React.FC = () => {
               <p className="text-xs text-gray-500">Doorstep Fuel Delivery & Fleet Cloud</p>
             </div>
           </div>
-          <button
-            onClick={() => setAuthModalOpen(false)}
-            className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-800 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Live Notification / OTP Alert Banner */}
-        {activeOtpCode && (
-          <div className="bg-amber-50 border-b border-amber-200 px-6 py-2.5 flex items-center justify-between text-xs text-amber-900">
-            <div className="flex items-center space-x-2">
-              <Sparkles className="w-4 h-4 text-amber-600 shrink-0 animate-pulse" />
-              <span>
-                Simulated SMS/WhatsApp OTP: <strong className="text-gray-900 text-sm font-mono tracking-widest bg-amber-100 px-2 py-0.5 rounded border border-amber-300">{activeOtpCode}</strong>
-              </span>
-            </div>
+          {user && (
             <button
-              type="button"
-              onClick={fillTestOtp}
-              className="text-[11px] font-semibold bg-amber-600 text-white px-2.5 py-1 rounded hover:bg-amber-700 transition-colors"
+              onClick={() => setAuthModalOpen(false)}
+              className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-800 transition-colors"
             >
-              Auto Fill
+              <X className="w-5 h-5" />
             </button>
-          </div>
-        )}
+          )}
+        </div>
 
         {errorMessage && (
           <div className="mx-6 mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center space-x-2">
@@ -275,6 +276,7 @@ export const AuthModal: React.FC = () => {
 
         {/* Main Content Areas */}
         <div className="p-6">
+          <div id="recaptcha-container"></div>
           <AnimatePresence mode="wait">
             {/* 1. LOGIN VIEW */}
             {authModalView === 'login' && (
@@ -291,20 +293,17 @@ export const AuthModal: React.FC = () => {
                 </div>
 
                 {/* Google Sign In Button */}
-                <div className="w-full flex items-center justify-center">
-                  <GoogleLogin
-                    onSuccess={(credentialResponse) => {
-                      if (credentialResponse.credential) {
-                        loginWithGoogle(credentialResponse.credential).catch(err => {
-                          setErrorMessage(err.message || 'Google Login Failed');
-                        });
-                      }
-                    }}
-                    onError={() => {
-                      setErrorMessage('Google Login Failed');
-                    }}
-                    useOneTap
-                  />
+                <div className="w-full flex items-center justify-center overflow-hidden rounded-xl">
+                  <div className="w-full flex justify-center py-1">
+                    <GoogleLogin
+                      onSuccess={handleGoogleSuccess}
+                      onError={() => setErrorMessage('Google Sign-In failed. Please use the Quick Demo Login below.')}
+                      useOneTap
+                      theme="outline"
+                      size="large"
+                      width="400"
+                    />
+                  </div>
                 </div>
 
                 <div className="flex items-center space-x-3 my-2">
@@ -345,12 +344,19 @@ export const AuthModal: React.FC = () => {
                     <div className="relative">
                       <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                       <input
-                        type="password"
+                        type={showPassword ? 'text' : 'password'}
                         placeholder="••••••••"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all"
+                        className="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-300 focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
                     </div>
                   </div>
 
@@ -371,8 +377,8 @@ export const AuthModal: React.FC = () => {
                     onClick={() => handleSendOtpFlow(false)}
                     className="w-full py-2 px-4 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 rounded-xl text-xs font-medium transition-all flex items-center justify-center space-x-2"
                   >
-                    <Phone className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Login with Instant Mobile OTP</span>
+                    <Mail className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Login with Email / Mobile OTP</span>
                   </button>
                 </form>
 
@@ -397,12 +403,7 @@ export const AuthModal: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => {
-                        setPendingAuthTarget({
-                          identifier: '+91 98860 77123',
-                          name: 'Rajesh Kumar Yadav',
-                          role: 'bowser_driver',
-                        });
-                        verifyOtp('482910');
+                        loginWithPassword('rajesh.driver@fuelgo.in', 'demo123');
                       }}
                       className="p-2 text-left bg-gray-50 hover:bg-gray-100 border border-gray-200 hover:border-gray-400 rounded-lg transition-all"
                     >
@@ -496,10 +497,10 @@ export const AuthModal: React.FC = () => {
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">Mobile (+91 Indian)</label>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Mobile (+91) or Email</label>
                       <input
-                        type="tel"
-                        placeholder="+91 98200 45910"
+                        type="text"
+                        placeholder="logistics@indiatrans.com or 9820045910"
                         value={identifier}
                         onChange={(e) => setIdentifier(e.target.value)}
                         className="w-full px-3 py-2 bg-gray-50 border border-gray-300 focus:border-gray-900 focus:bg-white rounded-xl text-xs text-gray-900 placeholder-gray-400 outline-none"
@@ -519,13 +520,22 @@ export const AuthModal: React.FC = () => {
 
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">Password</label>
-                    <input
-                      type="password"
-                      placeholder="Minimum 6 characters"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full px-3 py-2 bg-gray-50 border border-gray-300 focus:border-gray-900 focus:bg-white rounded-xl text-xs text-gray-900 placeholder-gray-400 outline-none"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Minimum 6 characters"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full pl-3 pr-10 py-2 bg-gray-50 border border-gray-300 focus:border-gray-900 focus:bg-white rounded-xl text-xs text-gray-900 placeholder-gray-400 outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
                   </div>
 
                   {/* PESO Compliance Checkbox */}
@@ -542,7 +552,7 @@ export const AuthModal: React.FC = () => {
                     disabled={loading}
                     className="w-full py-2.5 px-4 bg-gray-900 hover:bg-gray-800 text-white font-bold rounded-xl text-sm shadow-sm transition-all flex items-center justify-center space-x-2"
                   >
-                    <span>Verify Phone with OTP</span>
+                    <span>Verify with OTP</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -586,7 +596,7 @@ export const AuthModal: React.FC = () => {
                     {otpDigits.map((digit, idx) => (
                       <input
                         key={idx}
-                        ref={(el) => (otpInputRefs.current[idx] = el)}
+                        ref={(el) => { otpInputRefs.current[idx] = el; }}
                         type="text"
                         inputMode="numeric"
                         maxLength={1}
@@ -681,7 +691,7 @@ export const AuthModal: React.FC = () => {
                         {otpDigits.map((digit, idx) => (
                           <input
                             key={idx}
-                            ref={(el) => (otpInputRefs.current[idx] = el)}
+                            ref={(el) => { otpInputRefs.current[idx] = el; }}
                             type="text"
                             inputMode="numeric"
                             maxLength={1}
@@ -699,23 +709,41 @@ export const AuthModal: React.FC = () => {
                     <div className="space-y-3">
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">New Password</label>
-                        <input
-                          type="password"
-                          placeholder="At least 6 characters"
-                          value={newPassword}
-                          onChange={(e) => setNewPassword(e.target.value)}
-                          className="w-full px-3 py-2 bg-gray-50 border border-gray-300 focus:border-gray-900 focus:bg-white rounded-xl text-sm text-gray-900 outline-none"
-                        />
+                        <div className="relative">
+                          <input
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="At least 6 characters"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            className="w-full pl-3 pr-10 py-2 bg-gray-50 border border-gray-300 focus:border-gray-900 focus:bg-white rounded-xl text-sm text-gray-900 outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                          >
+                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">Confirm New Password</label>
-                        <input
-                          type="password"
-                          placeholder="Re-enter password"
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          className="w-full px-3 py-2 bg-gray-50 border border-gray-300 focus:border-gray-900 focus:bg-white rounded-xl text-sm text-gray-900 outline-none"
-                        />
+                        <div className="relative">
+                          <input
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="Re-enter password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            className="w-full pl-3 pr-10 py-2 bg-gray-50 border border-gray-300 focus:border-gray-900 focus:bg-white rounded-xl text-sm text-gray-900 outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                          >
+                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )}

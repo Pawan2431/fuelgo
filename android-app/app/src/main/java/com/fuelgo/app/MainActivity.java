@@ -42,8 +42,8 @@ public class MainActivity extends AppCompatActivity {
 
         requestLocationPermissions();
 
-        // Load local fuelgo-app.html from assets
-        webView.loadUrl("file:///android_asset/fuelgo-app.html");
+        // Load local React build from assets/www
+        webView.loadUrl("file:///android_asset/www/index.html");
     }
 
     private void requestLocationPermissions() {

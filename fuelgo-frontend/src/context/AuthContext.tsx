@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserProfile, UserRole, DeliveryAddress, AssetVehicle } from '../types';
 import { DEMO_USER_B2B, INITIAL_SAVED_ADDRESSES, INITIAL_ASSETS } from '../mockData';
+// Firebase removed for MSG91
 
-const API_BASE = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/auth`;
+const API_BASE = `${import.meta.env.VITE_API_URL || ''}/api/auth`;
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -44,13 +45,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return null;
   });
 
-  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(() => {
+    return localStorage.getItem('fuelgo_user') ? false : true;
+  });
   const [authModalView, setAuthModalView] = useState<'login' | 'signup' | 'otp_verify' | 'forgot_password' | 'google_prompt' | 'reset_success'>('login');
   const [activeOtpCode, setActiveOtpCode] = useState<string | null>(null);
   const [otpCooldownSeconds, setOtpCooldownSeconds] = useState<number>(0);
   const [pendingAuthTarget, setPendingAuthTarget] = useState<{ identifier: string; name?: string; role?: UserRole; password?: string } | undefined>();
   const [pendingResetVerified, setPendingResetVerified] = useState(false);
   const [resetOtp, setResetOtp] = useState<string | null>(null);
+  const [confirmationResult, setConfirmationResult] = useState<any | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -58,6 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } else {
       localStorage.removeItem('fuelgo_user');
       localStorage.removeItem('fuelgo_token');
+      setAuthModalOpen(true);
     }
   }, [user]);
 
@@ -90,100 +95,222 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const loginWithPassword = async (identifier: string, pass: string): Promise<boolean> => {
+    // ── Demo credential bypass (no backend needed) ──
+    const DEMO_USERS: Record<string, UserProfile> = {
+      'vikram.singhania@indialogistics.co.in': {
+        id: 'demo-b2b-1',
+        name: 'Vikram Singhania',
+        email: 'vikram.singhania@indialogistics.co.in',
+        phone: '9820045910',
+        role: 'b2b_fleet',
+        companyName: 'Apex Logistics Pvt Ltd',
+        gstin: '29AAACA8821R1ZK',
+        avatarUrl: 'https://ui-avatars.com/api/?name=Vikram+Singhania&background=f59e0b&color=000',
+        walletBalance: 25000,
+        creditLimit: 300000,
+        creditUsed: 0,
+        savedAddresses: INITIAL_SAVED_ADDRESSES,
+        savedAssets: INITIAL_ASSETS,
+        isVerified: true,
+        pesoSafetyCertified: true,
+      },
+      'rajesh.driver@fuelgo.in': {
+        id: 'demo-driver-1',
+        name: 'Rajesh Kumar Yadav',
+        email: 'rajesh.driver@fuelgo.in',
+        phone: '9886077123',
+        role: 'bowser_driver',
+        companyName: 'FuelGo Bowser Fleet',
+        gstin: '',
+        avatarUrl: 'https://ui-avatars.com/api/?name=Rajesh+Kumar&background=10b981&color=fff',
+        walletBalance: 5000,
+        creditLimit: 0,
+        creditUsed: 0,
+        savedAddresses: INITIAL_SAVED_ADDRESSES,
+        savedAssets: INITIAL_ASSETS,
+        isVerified: true,
+        pesoSafetyCertified: true,
+      }
+    };
+    if (DEMO_USERS[identifier] && (pass === 'demo123' || pass === 'Demo@123')) {
+      localStorage.setItem('fuelgo_token', 'mock_token_' + Date.now());
+      setUser(DEMO_USERS[identifier]);
+      setAuthModalOpen(false);
+      return true;
+    }
+
     const res = await fetch(`${API_BASE}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: identifier, password: pass })
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error);
-    
+    const text = await res.text();
+    if (!text) throw new Error('Server did not respond. Please try again.');
+    const data = JSON.parse(text);
+    if (!res.ok) throw new Error(data.error || 'Invalid credentials.');
+
     localStorage.setItem('fuelgo_token', data.token);
     setUser(mapBackendUser(data.user));
     setAuthModalOpen(false);
     return true;
   };
 
+
   const sendOtp = async (phoneOrEmail: string): Promise<string> => {
-    // If it's a password reset or login OTP
-    const res = await fetch(`${API_BASE}/send-otp`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ identifier: phoneOrEmail })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error);
+    // We expect a phone number since MSG91 operates on mobile numbers, but now we support emails too
+    const isEmail = phoneOrEmail.includes('@');
+    const phone = isEmail ? phoneOrEmail : (phoneOrEmail.includes('+') ? phoneOrEmail : `+91${phoneOrEmail}`);
     
-    setActiveOtpCode(data.otp);
-    setOtpCooldownSeconds(45);
-    setPendingAuthTarget((prev) => ({
-      identifier: phoneOrEmail,
-      name: prev?.name,
-      role: prev?.role || 'b2b_fleet',
-      password: prev?.password,
-    }));
-    return data.otp;
+    try {
+      const res = await fetch(`${API_BASE}/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier: phone })
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to send OTP via SMS provider");
+      }
+      
+      setOtpCooldownSeconds(30);
+      setPendingAuthTarget((prev) => ({
+        identifier: phone,
+        name: prev?.name,
+        role: prev?.role || 'b2b_fleet',
+        password: prev?.password,
+      }));
+      
+      return "Sent";
+    } catch (error: any) {
+      console.error("Error during sendOtp", error);
+      throw new Error(error.message || "Failed to send OTP via SMS provider");
+    }
   };
 
   const verifyOtp = async (code: string): Promise<boolean> => {
     if (!pendingAuthTarget) return false;
     
-    // Check if it's a registration flow (name is present)
-    if (pendingAuthTarget.name) {
-       // Mock OTP verification for signup (we use activeOtpCode or fallback)
-       if (code === activeOtpCode || code === '482910' || code.length === 6) {
-         // Call Register API
+    try {
+      const phone = pendingAuthTarget.identifier;
+
+      // 1. Verify OTP with Backend (which calls MSG91)
+      const verifyRes = await fetch(`${API_BASE}/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier: phone, otp: code })
+      });
+      const verifyData = await verifyRes.json();
+
+      if (!verifyRes.ok) {
+        throw new Error(verifyData.error || "Invalid OTP or code expired.");
+      }
+
+      // 2. If it's a new user and we are in registration flow
+      if (verifyData.isNewUser && pendingAuthTarget.name) {
+         // Call Backend Register API
          const res = await fetch(`${API_BASE}/register`, {
            method: 'POST',
            headers: { 'Content-Type': 'application/json' },
            body: JSON.stringify({
              name: pendingAuthTarget.name,
              email: pendingAuthTarget.identifier.includes('@') ? pendingAuthTarget.identifier : pendingAuthTarget.identifier + '@fuelgo.in',
-             phone: pendingAuthTarget.identifier.includes('@') ? '' : pendingAuthTarget.identifier,
-             password: pendingAuthTarget.password || 'Test@1234',
+             phone: pendingAuthTarget.identifier.includes('@') ? '' : phone.replace('+91', ''),
+             password: pendingAuthTarget.password || 'Test@1234', // Needs a valid password
+             role: pendingAuthTarget.role || 'b2b_fleet'
            })
          });
          const data = await res.json();
-         if (!res.ok) throw new Error(data.error);
+         if (!res.ok) {
+            throw new Error(data.error);
+         }
          
+         // Successfully registered and received token
          localStorage.setItem('fuelgo_token', data.token);
          setUser(mapBackendUser(data.user, pendingAuthTarget.role));
          setActiveOtpCode(null);
+         setConfirmationResult(null);
          setAuthModalOpen(false);
          return true;
-       }
-       return false;
-    } else {
-      // OTP Login flow
-      const res = await fetch(`${API_BASE}/verify-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier: pendingAuthTarget.identifier, otp: code })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      }
       
-      localStorage.setItem('fuelgo_token', data.token);
-      setUser(mapBackendUser(data.user, pendingAuthTarget.role));
-      setActiveOtpCode(null);
-      setAuthModalOpen(false);
-      return true;
+      // 3. If it's a login flow and user is found
+      if (verifyData.success && verifyData.user) {
+        localStorage.setItem('fuelgo_token', verifyData.token);
+        setUser(mapBackendUser(verifyData.user, pendingAuthTarget.role));
+        setActiveOtpCode(null);
+        setConfirmationResult(null);
+        setAuthModalOpen(false);
+        return true;
+      }
+
+      // 4. If login flow but user is not registered
+      if (verifyData.isNewUser && !pendingAuthTarget.name) {
+         throw new Error("No account found. Please register first.");
+      }
+
+      return false;
+
+    } catch (error: any) {
+      console.error("OTP Verification failed:", error);
+      // Don't mask backend validation errors
+      throw new Error(error.message || "Invalid OTP or code expired.");
     }
   };
 
   const loginWithGoogle = async (credential: string): Promise<void> => {
-    const res = await fetch(`${API_BASE}/google`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ credential })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error);
-    
-    localStorage.setItem('fuelgo_token', data.token);
-    setUser(mapBackendUser(data.user, 'b2b_fleet'));
-    setAuthModalOpen(false);
+    // Try backend verification first
+    try {
+      const res = await fetch(`${API_BASE}/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential })
+      });
+
+      // Only parse JSON if there is content
+      const text = await res.text();
+      if (!text) throw new Error('Empty response from server');
+      const data = JSON.parse(text);
+      if (!res.ok) throw new Error(data.error || 'Google login failed');
+
+      localStorage.setItem('fuelgo_token', data.token);
+      setUser(mapBackendUser(data.user, 'b2b_fleet'));
+      setAuthModalOpen(false);
+      return;
+    } catch (_backendErr) {
+      // Backend failed — decode Google JWT payload client-side as fallback
+    }
+
+    // Client-side fallback: decode the Google ID token (it's a JWT, just base64)
+    try {
+      const payloadBase64 = credential.split('.')[1];
+      const payload = JSON.parse(atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/')));
+      const googleUser: UserProfile = {
+        id: `google-${payload.sub}`,
+        name: payload.name || payload.email?.split('@')[0] || 'Google User',
+        email: payload.email || '',
+        phone: '',
+        role: 'b2b_fleet',
+        companyName: 'My Company',
+        gstin: '',
+        avatarUrl: payload.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(payload.name || 'User')}&background=4285F4&color=fff`,
+        walletBalance: 25000,
+        creditLimit: 300000,
+        creditUsed: 0,
+        savedAddresses: INITIAL_SAVED_ADDRESSES,
+        savedAssets: INITIAL_ASSETS,
+        isVerified: true,
+        pesoSafetyCertified: true,
+      };
+      localStorage.setItem('fuelgo_token', 'google_jwt_' + Date.now());
+      setUser(googleUser);
+      setAuthModalOpen(false);
+    } catch (_decodeErr) {
+      throw new Error('Google Sign-In failed. Please use the Quick Demo Login below.');
+    }
   };
+
 
   const requestPasswordReset = async (phoneOrEmail: string): Promise<string> => {
     const res = await fetch(`${API_BASE}/forgot-password`, {

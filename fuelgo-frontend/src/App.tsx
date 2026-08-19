@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { OrderProvider, useOrder } from './context/OrderContext';
 import { Header } from './components/common/Header';
 import { Footer } from './components/common/Footer';
@@ -18,9 +18,20 @@ import { StationFinder } from './components/map/StationFinder';
 import { AuthModal } from './components/auth/AuthModal';
 import { InvoiceModal } from './components/invoice/InvoiceModal';
 import { OrderQrPassModal } from './components/order/OrderQrPassModal';
-
+import { AdminPaymentVerification } from './components/payment/AdminPaymentVerification';
+import { AdminDashboard } from './components/dashboard/AdminDashboard';
+import { AdminLogs } from './components/dashboard/AdminLogs';
 const MainAppContent: React.FC = () => {
   const { activeTab } = useOrder();
+  const { user } = useAuth();
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <AuthModal />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-900 selection:bg-amber-500 selection:text-white">
@@ -34,6 +45,9 @@ const MainAppContent: React.FC = () => {
         {activeTab === 'driver_view' && <DriverDispenserView />}
         {activeTab === 'ai_advisor' && <SmartFuelAdvisor />}
         {activeTab === 'nearby_stations' && <StationFinder />}
+        {activeTab === 'admin_payments' && <AdminPaymentVerification />}
+        {activeTab === 'admin_dashboard' && <AdminDashboard />}
+        {activeTab === 'admin_logs' && <AdminLogs />}
 
         {/* Global Safety Features Strip */}
         <SafetyBanner />

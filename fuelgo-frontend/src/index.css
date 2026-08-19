@@ -3,7 +3,21 @@
 @layer base {
   body {
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    /* Native App Feel */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
   }
+  
+  /* Allow selecting text in inputs */
+  input, textarea {
+    -webkit-user-select: auto;
+    user-select: auto;
+  }
+
   h1, h2, h3, h4, h5, h6, .font-heading {
     font-family: 'Outfit', sans-serif;
   }
