@@ -74,18 +74,22 @@ app.use((err, req, res, next) => {
 });
 
 // Start Server
-app.listen(PORT, () => {
-  logger.info(`\n--- FuelGo API Routes ---`);
-  logger.info(`[POST] /api/auth/register`);
-  logger.info(`[POST] /api/auth/login`);
-  logger.info(`[GET]  /api/prices`);
-  logger.info(`[GET]  /api/stations`);
-  logger.info(`[GET]  /api/stations/:id`);
-  logger.info(`[POST] /api/orders`);
-  logger.info(`[GET]  /api/orders`);
-  logger.info(`[GET]  /api/orders/:id`);
-  logger.info(`[PATCH] /api/orders/:id/status`);
-  logger.info(`[PATCH] /api/orders/:id/location`);
-  logger.info(`-------------------------`);
-  logger.info(`FuelGo API running on http://localhost:${PORT}`);
-});
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    logger.info(`\n--- FuelGo API Routes ---`);
+    logger.info(`[POST] /api/auth/register`);
+    logger.info(`[POST] /api/auth/login`);
+    logger.info(`[GET]  /api/prices`);
+    logger.info(`[GET]  /api/stations`);
+    logger.info(`[GET]  /api/stations/:id`);
+    logger.info(`[POST] /api/orders`);
+    logger.info(`[GET]  /api/orders`);
+    logger.info(`[GET]  /api/orders/:id`);
+    logger.info(`[PATCH] /api/orders/:id/status`);
+    logger.info(`[PATCH] /api/orders/:id/location`);
+    logger.info(`-------------------------`);
+    logger.info(`FuelGo API running on http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
